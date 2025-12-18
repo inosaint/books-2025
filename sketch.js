@@ -18,6 +18,8 @@ const TEXT_COLOR = '#000000';
 
 // Data
 let booksData = [];
+let bookPositions = [];
+let hoveredBook = null;
 
 function preload() {
     // Load CSV data
@@ -105,8 +107,92 @@ function draw() {
     // Draw book visualizations
     drawBooks();
 
-    noLoop(); // Only draw once
-    console.log('Visualization drawn');
+    // Draw tooltip if hovering over a book
+    if (hoveredBook) {
+        drawTooltip(hoveredBook);
+    }
+}
+
+function mouseMoved() {
+    // Check if mouse is over any book stroke
+    hoveredBook = null;
+
+    for (let bookPos of bookPositions) {
+        let startPos = getDatePosition(bookPos.start.month, bookPos.start.day);
+        let endPos = getDatePosition(bookPos.end.month, bookPos.end.day);
+
+        // Apply vertical offset
+        startPos.y += bookPos.offset;
+        endPos.y += bookPos.offset;
+
+        // Check if mouse is near the line (with tolerance)
+        let tolerance = 15;
+        let d = distToSegment(mouseX, mouseY, startPos, endPos);
+
+        if (d < tolerance) {
+            hoveredBook = bookPos;
+            break;
+        }
+    }
+
+    return false; // Prevent default behavior
+}
+
+// Calculate distance from point to line segment
+function distToSegment(px, py, v, w) {
+    let l2 = dist(v.x, v.y, w.x, w.y) ** 2;
+    if (l2 === 0) return dist(px, py, v.x, v.y);
+
+    let t = ((px - v.x) * (w.x - v.x) + (py - v.y) * (w.y - v.y)) / l2;
+    t = constrain(t, 0, 1);
+
+    return dist(px, py, v.x + t * (w.x - v.x), v.y + t * (w.y - v.y));
+}
+
+function drawTooltip(bookPos) {
+    push();
+
+    // Tooltip styling
+    const padding = 10;
+    const maxWidth = 250;
+
+    textFont('Inter');
+    textSize(12);
+
+    let titleText = bookPos.book.title;
+    let authorText = bookPos.book.author;
+
+    // Measure text
+    let titleWidth = textWidth(titleText);
+    let authorWidth = textWidth(authorText);
+    let tooltipWidth = min(max(titleWidth, authorWidth) + padding * 2, maxWidth);
+    let tooltipHeight = 50;
+
+    // Position tooltip near mouse
+    let tooltipX = mouseX + 15;
+    let tooltipY = mouseY - 30;
+
+    // Keep tooltip within canvas bounds
+    if (tooltipX + tooltipWidth > width) tooltipX = mouseX - tooltipWidth - 15;
+    if (tooltipY < 0) tooltipY = mouseY + 15;
+
+    // Draw tooltip background
+    fill(255, 255, 255, 240);
+    stroke(100);
+    strokeWeight(1);
+    rect(tooltipX, tooltipY, tooltipWidth, tooltipHeight, 4);
+
+    // Draw text
+    noStroke();
+    fill(0);
+    textAlign(LEFT, TOP);
+    text(titleText, tooltipX + padding, tooltipY + padding, tooltipWidth - padding * 2);
+
+    textSize(10);
+    fill(100);
+    text(authorText, tooltipX + padding, tooltipY + 28, tooltipWidth - padding * 2);
+
+    pop();
 }
 
 function scaleCanvas(s) {
@@ -172,17 +258,22 @@ function drawBooks() {
         [220, 140, 120], // Orange
     ];
 
-    // Parse all books and detect overlaps
-    let bookPositions = [];
+    // Parse all books and detect overlaps (only do this once)
+    if (bookPositions.length === 0) {
 
     booksData.forEach((book, index) => {
         if (!book.startDate || !book.endDate) return;
 
-        // Parse dates
+        // Parse dates (allow end date in Dec 2024)
         let start = parseDateString(book.startDate);
-        let end = parseDateString(book.endDate);
+        let end = parseDateString(book.endDate, true);
 
         if (!end) return;
+
+        // If end date is in Dec 2024, treat it as Dec 2025 for visualization
+        if (end.year === YEAR - 1) {
+            end.year = YEAR;
+        }
 
         // If start date is before 2025 or missing, use Jan 1, 2025
         if (!start || start.year < YEAR) {
@@ -210,23 +301,24 @@ function drawBooks() {
         return b.duration - a.duration;
     });
 
-    // Assign vertical offsets to avoid overlaps
-    bookPositions.forEach((bookPos, i) => {
-        let offset = 0;
+        // Assign vertical offsets to avoid overlaps
+        bookPositions.forEach((bookPos, i) => {
+            let offset = 0;
 
-        // Check for overlaps with previous books
-        for (let j = 0; j < i; j++) {
-            let other = bookPositions[j];
+            // Check for overlaps with previous books
+            for (let j = 0; j < i; j++) {
+                let other = bookPositions[j];
 
-            // Check if books overlap in time
-            if (datesOverlap(bookPos.start, bookPos.end, other.start, other.end)) {
-                // Stack this book below the other
-                offset = Math.max(offset, (other.offset || 0) + 6);
+                // Check if books overlap in time
+                if (datesOverlap(bookPos.start, bookPos.end, other.start, other.end)) {
+                    // Stack this book below the other
+                    offset = Math.max(offset, (other.offset || 0) + 6);
+                }
             }
-        }
 
-        bookPos.offset = offset;
-    });
+            bookPos.offset = offset;
+        });
+    }
 
     // Draw all books with their offsets
     bookPositions.forEach(bookPos => {
@@ -289,7 +381,7 @@ function getDatePosition(month, day) {
     return { x, y };
 }
 
-function parseDateString(dateStr) {
+function parseDateString(dateStr, allowPreviousYear = false) {
     // Expected formats: "Dec 05 2025", "Mar 2025", "YYYY-MM-DD", or "MM/DD/YYYY"
     if (!dateStr) return null;
 
@@ -331,6 +423,11 @@ function parseDateString(dateStr) {
         year = parseInt(parts[2]);
     } else {
         return null;
+    }
+
+    // Allow dates from Dec 2024 if allowPreviousYear is true
+    if (allowPreviousYear && year === YEAR - 1 && month === 11) {
+        return { year, month, day };
     }
 
     if (year !== YEAR) return null;

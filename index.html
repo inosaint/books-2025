@@ -50,23 +50,24 @@
             padding: 20px;
             text-align: left;
             min-height: 60px;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
             gap: 20px;
         }
 
         footer .left-column {
-            grid-column: 1;
+            flex: 1;
         }
 
         footer .right-column {
-            grid-column: 2;
+            flex: 1;
         }
 
         /* Mobile: single column */
         @media (max-width: 767px) {
             footer {
-                grid-template-columns: 1fr;
+                flex-direction: column;
                 padding: 10px;
             }
 
