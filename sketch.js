@@ -18,7 +18,6 @@ const TEXT_COLOR = '#000000';
 
 // Data
 let booksData = [];
-let brushReady = false;
 
 function preload() {
     // Load CSV data
@@ -75,25 +74,13 @@ function setup() {
 
     textFont('Inter');
 
-    // Initialize brush library
-    brush.instance(this);
-    brush.load(() => {
-        console.log('Brush library loaded');
-        brushReady = true;
-        redraw();
-    });
+    // Set random seed for consistent texture
+    randomSeed(42);
+
+    console.log('Setup complete');
 }
 
 function draw() {
-    if (!brushReady) {
-        background(BG_COLOR);
-        fill(TEXT_COLOR);
-        textSize(16);
-        textAlign(CENTER, CENTER);
-        text('Loading brushes...', width / 2, height / 2);
-        return;
-    }
-
     background(BG_COLOR);
 
     // Draw calendar grid
@@ -192,15 +179,7 @@ function drawBooks() {
 }
 
 function drawBookStroke(startPos, endPos, color) {
-    // Use p5.brush for textured marker strokes
-    brush.pick('marker');
-    brush.set('color', color, 200);
-    brush.set('weight', 20);
-
-    // Draw textured line from start to end
-    brush.line(startPos.x, startPos.y, endPos.x, endPos.y);
-
-    /* Previous native p5.js implementation (without brush library):
+    // Native p5.js implementation with textured strokes
     push();
 
     // Draw multiple overlapping lines for texture
@@ -223,6 +202,12 @@ function drawBookStroke(startPos, endPos, color) {
     }
 
     pop();
+
+    /* p5.brush library implementation (not working correctly):
+    brush.pick('marker');
+    brush.set('color', color, 200);
+    brush.set('weight', 20);
+    brush.line(startPos.x, startPos.y, endPos.x, endPos.y);
     */
 }
 
