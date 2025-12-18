@@ -18,10 +18,13 @@ const TEXT_COLOR = '#000000';
 
 // Data
 let booksData = [];
+let brushReady = false;
+let hasDrawn = false;
 
 function preload() {
     // Load CSV data
     loadTable('data/books_2025.csv', 'csv', 'header', (table) => {
+        console.log('CSV loaded, rows:', table.getRowCount());
         for (let i = 0; i < table.getRowCount(); i++) {
             let row = table.getRow(i);
             booksData.push({
@@ -33,6 +36,7 @@ function preload() {
                 avgRating: row.getString('avg_rating')
             });
         }
+        console.log('Books data:', booksData);
     });
 }
 
@@ -43,15 +47,31 @@ function setup() {
 
     createCanvas(canvasWidth, canvasHeight);
 
-    // Initialize brush library
-    brush.load();
+    // Initialize brush library with callback
+    brush.load(() => {
+        console.log('Brush library loaded');
+        brushReady = true;
+    });
 
     textFont('Inter');
-
-    noLoop(); // Static visualization
 }
 
 function draw() {
+    // Wait for brush to be ready
+    if (!brushReady) {
+        background(BG_COLOR);
+        fill(TEXT_COLOR);
+        textSize(16);
+        textAlign(CENTER, CENTER);
+        text('Loading...', width / 2, height / 2);
+        return;
+    }
+
+    // Only draw once when ready
+    if (hasDrawn) {
+        return;
+    }
+
     background(BG_COLOR);
 
     // Draw calendar grid
@@ -59,6 +79,9 @@ function draw() {
 
     // Draw book visualizations
     drawBooks();
+
+    hasDrawn = true;
+    console.log('Visualization drawn');
 }
 
 function drawCalendarGrid() {

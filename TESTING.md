@@ -7,11 +7,7 @@ Since this project loads data from a CSV file, you'll need to run a local web se
 ### Option 1: Python (Recommended)
 
 ```bash
-# Python 3
-python -m http.server 8000
-
-# Python 2
-python -m SimpleHTTPServer 8000
+python3 -m http.server 8000
 ```
 
 Then open: **http://localhost:8000**
