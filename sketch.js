@@ -28,7 +28,14 @@ function preload() {
         'Elmer': 'images/elmer.jpg',
         'Fantastic Four: Grand Design #1 (of 2)': 'images/FantasticFour.jpg',
         'Abandon the Old in Tokyo': 'images/Abandon_the_Old_in_Tokyo.jpg',
-        'Mooncop': 'images/mooncop.jpeg'
+        'Mooncop': 'images/mooncop.jpeg',
+        'Sea of Tranquility': 'images/Sea_of_Tranquility.png',
+        'Blood of the Virgin': 'images/bloodvirgin.jpg',
+        'Kinfolk Islands': 'images/islands.jpg',
+        'Notes from an Island': 'images/notesfromisland.jpg',
+        'The Strange': 'images/thestrange.jpeg',
+        'Zodiac: A Graphic Memoir': 'images/zodiac.jpeg',
+        'The Iron Man': 'images/irongiant.jpg'
     };
 
     // Load book cover images
@@ -333,13 +340,54 @@ function drawBooks() {
             start = { year: YEAR, month: 0, day: 1 };
         }
 
-        bookPositions.push({
-            book,
-            start,
-            end,
-            color: colors[index % colors.length],
-            index
-        });
+        // Check if book spans multiple months
+        if (start.month !== end.month) {
+            // Create segments for each month
+            let currentMonth = start.month;
+            let segmentStart = start;
+
+            while (currentMonth <= end.month) {
+                let segmentEnd;
+
+                if (currentMonth === end.month) {
+                    // Last segment - use actual end date
+                    segmentEnd = end;
+                } else {
+                    // Use last day of current month
+                    segmentEnd = {
+                        year: YEAR,
+                        month: currentMonth,
+                        day: DAYS_IN_MONTH[currentMonth]
+                    };
+                }
+
+                bookPositions.push({
+                    book,
+                    start: segmentStart,
+                    end: segmentEnd,
+                    color: colors[index % colors.length],
+                    index,
+                    isSegment: true,
+                    segmentMonth: currentMonth
+                });
+
+                // Next segment starts on first day of next month
+                currentMonth++;
+                if (currentMonth <= end.month) {
+                    segmentStart = { year: YEAR, month: currentMonth, day: 1 };
+                }
+            }
+        } else {
+            // Single month book
+            bookPositions.push({
+                book,
+                start,
+                end,
+                color: colors[index % colors.length],
+                index,
+                isSegment: false
+            });
+        }
     });
 
     // Calculate duration for each book
