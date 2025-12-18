@@ -131,10 +131,13 @@ function draw() {
     if (hoveredBook) {
         drawTooltip(hoveredBook);
     }
+
+    noLoop(); // Only draw once, redraw on mouse move
 }
 
 function mouseMoved() {
     // Check if mouse is over any book stroke
+    let previousHover = hoveredBook;
     hoveredBook = null;
 
     for (let bookPos of bookPositions) {
@@ -155,6 +158,11 @@ function mouseMoved() {
         }
     }
 
+    // Only redraw if hover state changed
+    if (hoveredBook !== previousHover) {
+        redraw();
+    }
+
     return false; // Prevent default behavior
 }
 
@@ -173,9 +181,9 @@ function drawTooltip(bookPos) {
     push();
 
     // Tooltip styling
-    const padding = 10;
+    const padding = 12;
     const imageSize = 60;
-    const maxTextWidth = 200;
+    const maxTextWidth = 180;
 
     textFont('Inter');
     textSize(12);
@@ -186,8 +194,9 @@ function drawTooltip(bookPos) {
 
     // Calculate dimensions
     let hasImage = bookImage !== undefined;
-    let tooltipWidth = hasImage ? imageSize + maxTextWidth + padding * 3 : maxTextWidth + padding * 2;
-    let tooltipHeight = hasImage ? max(imageSize + padding * 2, 70) : 50;
+    let textAreaWidth = maxTextWidth;
+    let tooltipWidth = hasImage ? imageSize + textAreaWidth + padding * 3 : textAreaWidth + padding * 2;
+    let tooltipHeight = hasImage ? max(imageSize + padding * 2, 80) : 60;
 
     // Position tooltip near mouse
     let tooltipX = mouseX + 15;
@@ -220,16 +229,21 @@ function drawTooltip(bookPos) {
         image(bookImage, tooltipX + padding, tooltipY + padding, imgWidth, imgHeight);
     }
 
-    // Draw text
+    // Draw text with proper spacing
     let textX = hasImage ? tooltipX + imageSize + padding * 2 : tooltipX + padding;
+    let textY = tooltipY + padding;
+
     noStroke();
     fill(0);
     textAlign(LEFT, TOP);
-    text(titleText, textX, tooltipY + padding, maxTextWidth - padding);
+    textSize(12);
+    textLeading(14);
+    text(titleText, textX, textY, textAreaWidth);
 
     textSize(10);
+    textLeading(12);
     fill(100);
-    text(authorText, textX, tooltipY + padding + 20, maxTextWidth - padding);
+    text(authorText, textX, textY + 30, textAreaWidth);
 
     pop();
 }
