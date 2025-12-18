@@ -233,7 +233,7 @@ function datesOverlap(start1, end1, start2, end2) {
 }
 
 function drawBookStroke(startPos, endPos, color) {
-    // Pencil-like textured stroke with grainy appearance
+    // Thick textured stroke with grainy appearance (like the design)
     push();
 
     // Calculate line angle and length
@@ -241,16 +241,16 @@ function drawBookStroke(startPos, endPos, color) {
     let dy = endPos.y - startPos.y;
     let distance = dist(startPos.x, startPos.y, endPos.x, endPos.y);
 
-    // Reduced stroke thickness for pencil feel
-    const strokeThickness = 8;
-    const grainDensity = distance * 0.5; // Number of grain particles
+    // Much thicker stroke to match the design
+    const strokeThickness = 20;
+    const grainDensity = distance * 3; // Much higher density for visibility
 
     // Draw many small dots/points along the line for grainy texture
     for (let i = 0; i < grainDensity; i++) {
         let t = i / grainDensity;
 
         // Add some randomness to position along the line
-        let randomT = t + random(-0.01, 0.01);
+        let randomT = t + random(-0.005, 0.005);
         randomT = constrain(randomT, 0, 1);
 
         let x = lerp(startPos.x, endPos.x, randomT);
@@ -262,9 +262,9 @@ function drawBookStroke(startPos, endPos, color) {
         x += cos(angle) * perpOffset;
         y += sin(angle) * perpOffset;
 
-        // Vary opacity and size for texture
-        let alpha = random(80, 180);
-        let dotSize = random(0.5, 2);
+        // Higher opacity and larger dots for better visibility
+        let alpha = random(120, 200);
+        let dotSize = random(1, 3);
 
         noStroke();
         fill(color[0], color[1], color[2], alpha);
@@ -273,22 +273,11 @@ function drawBookStroke(startPos, endPos, color) {
 
     pop();
 
-    /* Previous implementation:
-    push();
-    for (let i = 0; i < 15; i++) {
-        let offsetX = random(-3, 3);
-        let offsetY = random(-2, 2);
-        let alpha = map(i, 0, 15, 200, 100);
-        stroke(color[0], color[1], color[2], alpha);
-        strokeWeight(random(15, 25));
-        line(
-            startPos.x + offsetX,
-            startPos.y + offsetY,
-            endPos.x + offsetX,
-            endPos.y + offsetY
-        );
-    }
-    pop();
+    /* Previous thin implementation:
+    const strokeThickness = 8;
+    const grainDensity = distance * 0.5;
+    alpha = random(80, 180);
+    dotSize = random(0.5, 2);
     */
 }
 
