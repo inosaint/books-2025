@@ -18,6 +18,7 @@ const TEXT_COLOR = '#000000';
 
 // Data
 let booksData = [];
+let brushReady = false;
 
 function preload() {
     // Load CSV data
@@ -50,21 +51,49 @@ function preload() {
 }
 
 function setup() {
-    // Calculate canvas size
-    const canvasWidth = MARGIN_LEFT + (31 * CELL_WIDTH) + MARGIN_RIGHT;
-    const canvasHeight = MARGIN_TOP + (12 * CELL_HEIGHT) + MARGIN_BOTTOM;
+    // Calculate canvas size to fit viewport (leaving room for footer)
+    const maxWidth = windowWidth - 40;
+    const maxHeight = windowHeight - 140; // Leave room for footer
 
-    createCanvas(canvasWidth, canvasHeight);
+    // Calculate ideal size based on grid
+    const idealWidth = MARGIN_LEFT + (31 * CELL_WIDTH) + MARGIN_RIGHT;
+    const idealHeight = MARGIN_TOP + (12 * CELL_HEIGHT) + MARGIN_BOTTOM;
+
+    // Scale to fit if needed
+    const scale = min(maxWidth / idealWidth, maxHeight / idealHeight, 1);
+
+    const canvasWidth = idealWidth * scale;
+    const canvasHeight = idealHeight * scale;
+
+    let canvas = createCanvas(canvasWidth, canvasHeight);
+    canvas.parent('main');
+
+    // Scale everything if needed
+    if (scale < 1) {
+        scaleCanvas(scale);
+    }
 
     textFont('Inter');
 
-    // Set random seed for consistent texture
-    randomSeed(42);
-
-    console.log('Setup complete');
+    // Initialize brush library
+    brush.instance(this);
+    brush.load(() => {
+        console.log('Brush library loaded');
+        brushReady = true;
+        redraw();
+    });
 }
 
 function draw() {
+    if (!brushReady) {
+        background(BG_COLOR);
+        fill(TEXT_COLOR);
+        textSize(16);
+        textAlign(CENTER, CENTER);
+        text('Loading brushes...', width / 2, height / 2);
+        return;
+    }
+
     background(BG_COLOR);
 
     // Draw calendar grid
@@ -77,9 +106,18 @@ function draw() {
     console.log('Visualization drawn');
 }
 
+function scaleCanvas(s) {
+    MARGIN_LEFT *= s;
+    MARGIN_TOP *= s;
+    MARGIN_RIGHT *= s;
+    MARGIN_BOTTOM *= s;
+    CELL_WIDTH *= s;
+    CELL_HEIGHT *= s;
+}
+
 function drawCalendarGrid() {
     stroke(GRID_COLOR);
-    strokeWeight(1);
+    strokeWeight(0.5);
     fill(TEXT_COLOR);
 
     // Draw year label (aligned with months)
@@ -95,7 +133,7 @@ function drawCalendarGrid() {
         text(day, x, MARGIN_TOP - 30);
     }
 
-    // Draw month rows
+    // Draw month rows - only horizontal lines and vertical day separators
     for (let month = 0; month < 12; month++) {
         let y = MARGIN_TOP + month * CELL_HEIGHT;
 
@@ -107,7 +145,7 @@ function drawCalendarGrid() {
         // Horizontal line (top of month row)
         line(MARGIN_LEFT, y, MARGIN_LEFT + 31 * CELL_WIDTH, y);
 
-        // Vertical lines for days (only draw the left edge and day separators)
+        // Vertical lines for days
         for (let day = 0; day <= 31; day++) {
             let x = MARGIN_LEFT + day * CELL_WIDTH;
             line(x, y, x, y + CELL_HEIGHT);
@@ -154,29 +192,13 @@ function drawBooks() {
 }
 
 function drawBookStroke(startPos, endPos, color) {
-    // Create textured marker-like stroke effect using native p5.js
-    push();
+    // Use p5.brush for textured marker strokes
+    brush.pick('marker');
+    brush.set('color', color, 200);
+    brush.set('weight', 20);
 
-    // Draw multiple overlapping lines for texture
-    for (let i = 0; i < 15; i++) {
-        let offsetX = random(-3, 3);
-        let offsetY = random(-2, 2);
-
-        // Vary opacity for textured look
-        let alpha = map(i, 0, 15, 200, 100);
-        stroke(color[0], color[1], color[2], alpha);
-        strokeWeight(random(15, 25));
-
-        // Draw slightly offset line for texture
-        line(
-            startPos.x + offsetX,
-            startPos.y + offsetY,
-            endPos.x + offsetX,
-            endPos.y + offsetY
-        );
-    }
-
-    pop();
+    // Draw textured line from start to end
+    brush.line(startPos.x, startPos.y, endPos.x, endPos.y);
 }
 
 function getDatePosition(month, day) {

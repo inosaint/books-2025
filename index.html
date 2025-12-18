@@ -8,35 +8,46 @@
     <!-- Inter Font -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400&display=swap" rel="stylesheet">
 
     <!-- p5.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
 
     <!-- p5.brush library -->
-    <script src="https://cdn.jsdelivr.net/npm/p5.brush@0.5.1/dist/p5.brush.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/p5.brush@1.1.4/dist/p5.brush.min.js"></script>
 
     <style>
         body {
             margin: 0;
             padding: 0;
             display: flex;
-            justify-content: center;
-            align-items: center;
+            flex-direction: column;
             min-height: 100vh;
             background-color: #FAFFCE;
             font-family: 'Inter', sans-serif;
+            font-weight: 300;
         }
 
         main {
+            flex: 1;
             display: flex;
             justify-content: center;
             align-items: center;
+            padding: 20px;
+        }
+
+        footer {
+            padding: 20px;
+            text-align: center;
+            min-height: 60px;
         }
     </style>
 </head>
 <body>
     <main></main>
+    <footer id="comments">
+        <!-- Comments will go here later -->
+    </footer>
     <script src="sketch.js"></script>
 </body>
 </html>
