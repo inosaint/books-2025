@@ -18,6 +18,7 @@ const TEXT_COLOR = '#000000';
 
 // Data
 let booksData = [];
+let brushReady = false;
 
 function preload() {
     // Load CSV data
@@ -79,13 +80,28 @@ function setup() {
 
     textFont('Inter');
 
-    // Set random seed for consistent texture
-    randomSeed(42);
+    // Initialize p5.brush library
+    brush.instance(this);
+    brush.load(() => {
+        console.log('Brush library loaded');
+        brushReady = true;
+        redraw();
+    });
 
     console.log('Setup complete');
 }
 
 function draw() {
+    // Wait for brush library to load
+    if (!brushReady) {
+        background(BG_COLOR);
+        fill(TEXT_COLOR);
+        textSize(16);
+        textAlign(CENTER, CENTER);
+        text('Loading brushes...', width / 2, height / 2);
+        return;
+    }
+
     background(BG_COLOR);
 
     // Draw calendar grid
@@ -125,7 +141,7 @@ function drawCalendarGrid() {
         text(day, x, MARGIN_TOP - 30);
     }
 
-    // Draw month rows - only horizontal lines and vertical day separators (no outer borders)
+    // Draw month rows - only horizontal lines between months (no top, no outer borders)
     for (let month = 0; month < 12; month++) {
         let y = MARGIN_TOP + month * CELL_HEIGHT;
 
@@ -134,8 +150,10 @@ function drawCalendarGrid() {
         textAlign(RIGHT, CENTER);
         text(MONTHS[month], MARGIN_LEFT - 15, y + CELL_HEIGHT / 2);
 
-        // Horizontal line (top of month row)
-        line(MARGIN_LEFT, y, MARGIN_LEFT + 31 * CELL_WIDTH, y);
+        // Horizontal line (skip the first one to remove top border)
+        if (month > 0) {
+            line(MARGIN_LEFT, y, MARGIN_LEFT + 31 * CELL_WIDTH, y);
+        }
 
         // Vertical lines for days (skip first and last to keep grid open)
         for (let day = 1; day < 31; day++) {
@@ -233,52 +251,22 @@ function datesOverlap(start1, end1, start2, end2) {
 }
 
 function drawBookStroke(startPos, endPos, color) {
-    // Thick textured stroke with grainy appearance (like the design)
+    // Use p5.brush library for authentic textured strokes
     push();
 
-    // Calculate line angle and length
-    let dx = endPos.x - startPos.x;
-    let dy = endPos.y - startPos.y;
-    let distance = dist(startPos.x, startPos.y, endPos.x, endPos.y);
+    // Set brush to marker type with dense grain
+    brush.pick('marker');
 
-    // Much thicker stroke to match the design
-    const strokeThickness = 20;
-    const grainDensity = distance * 3; // Much higher density for visibility
+    // Configure brush properties for thick, grainy texture
+    brush.set('color', color, 200);
+    brush.set('weight', 20);
+    brush.set('bleed', 0.3);
+    brush.set('field', 'seabed');  // Adds organic variation
 
-    // Draw many small dots/points along the line for grainy texture
-    for (let i = 0; i < grainDensity; i++) {
-        let t = i / grainDensity;
-
-        // Add some randomness to position along the line
-        let randomT = t + random(-0.005, 0.005);
-        randomT = constrain(randomT, 0, 1);
-
-        let x = lerp(startPos.x, endPos.x, randomT);
-        let y = lerp(startPos.y, endPos.y, randomT);
-
-        // Add perpendicular offset for thickness variation
-        let perpOffset = random(-strokeThickness / 2, strokeThickness / 2);
-        let angle = atan2(dy, dx) + HALF_PI;
-        x += cos(angle) * perpOffset;
-        y += sin(angle) * perpOffset;
-
-        // Higher opacity and larger dots for better visibility
-        let alpha = random(120, 200);
-        let dotSize = random(1, 3);
-
-        noStroke();
-        fill(color[0], color[1], color[2], alpha);
-        circle(x, y, dotSize);
-    }
+    // Draw the stroke
+    brush.line(startPos.x, startPos.y, endPos.x, endPos.y);
 
     pop();
-
-    /* Previous thin implementation:
-    const strokeThickness = 8;
-    const grainDensity = distance * 0.5;
-    alpha = random(80, 180);
-    dotSize = random(0.5, 2);
-    */
 }
 
 function getDatePosition(month, day) {
