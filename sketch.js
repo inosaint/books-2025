@@ -125,7 +125,7 @@ function drawCalendarGrid() {
         text(day, x, MARGIN_TOP - 30);
     }
 
-    // Draw month rows - only horizontal lines and vertical day separators
+    // Draw month rows - only horizontal lines and vertical day separators (no outer borders)
     for (let month = 0; month < 12; month++) {
         let y = MARGIN_TOP + month * CELL_HEIGHT;
 
@@ -137,8 +137,8 @@ function drawCalendarGrid() {
         // Horizontal line (top of month row)
         line(MARGIN_LEFT, y, MARGIN_LEFT + 31 * CELL_WIDTH, y);
 
-        // Vertical lines for days
-        for (let day = 0; day <= 31; day++) {
+        // Vertical lines for days (skip first and last to keep grid open)
+        for (let day = 1; day < 31; day++) {
             let x = MARGIN_LEFT + day * CELL_WIDTH;
             line(x, y, x, y + CELL_HEIGHT);
         }
