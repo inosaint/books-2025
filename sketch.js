@@ -159,6 +159,9 @@ function drawBooks() {
         [220, 140, 120], // Orange
     ];
 
+    // Parse all books and detect overlaps
+    let bookPositions = [];
+
     booksData.forEach((book, index) => {
         if (!book.startDate || !book.endDate) return;
 
@@ -173,31 +176,111 @@ function drawBooks() {
             start = { year: YEAR, month: 0, day: 1 };
         }
 
-        // Get positions
-        let startPos = getDatePosition(start.month, start.day);
-        let endPos = getDatePosition(end.month, end.day);
+        bookPositions.push({
+            book,
+            start,
+            end,
+            color: colors[index % colors.length],
+            index
+        });
+    });
 
-        // Draw brush stroke
-        let color = colors[index % colors.length];
-        drawBookStroke(startPos, endPos, color);
+    // Sort by start date
+    bookPositions.sort((a, b) => {
+        if (a.start.month !== b.start.month) return a.start.month - b.start.month;
+        return a.start.day - b.start.day;
+    });
+
+    // Assign vertical offsets to avoid overlaps
+    bookPositions.forEach((bookPos, i) => {
+        let offset = 0;
+
+        // Check for overlaps with previous books
+        for (let j = 0; j < i; j++) {
+            let other = bookPositions[j];
+
+            // Check if books overlap in time
+            if (datesOverlap(bookPos.start, bookPos.end, other.start, other.end)) {
+                // Stack this book below the other
+                offset = Math.max(offset, (other.offset || 0) + 6);
+            }
+        }
+
+        bookPos.offset = offset;
+    });
+
+    // Draw all books with their offsets
+    bookPositions.forEach(bookPos => {
+        let startPos = getDatePosition(bookPos.start.month, bookPos.start.day);
+        let endPos = getDatePosition(bookPos.end.month, bookPos.end.day);
+
+        // Apply vertical offset
+        startPos.y += bookPos.offset;
+        endPos.y += bookPos.offset;
+
+        drawBookStroke(startPos, endPos, bookPos.color);
     });
 }
 
+// Check if two date ranges overlap
+function datesOverlap(start1, end1, start2, end2) {
+    let date1Start = start1.month * 31 + start1.day;
+    let date1End = end1.month * 31 + end1.day;
+    let date2Start = start2.month * 31 + start2.day;
+    let date2End = end2.month * 31 + end2.day;
+
+    return date1Start <= date2End && date2Start <= date1End;
+}
+
 function drawBookStroke(startPos, endPos, color) {
-    // Native p5.js implementation with textured strokes
+    // Pencil-like textured stroke with grainy appearance
     push();
 
-    // Draw multiple overlapping lines for texture
+    // Calculate line angle and length
+    let dx = endPos.x - startPos.x;
+    let dy = endPos.y - startPos.y;
+    let distance = dist(startPos.x, startPos.y, endPos.x, endPos.y);
+
+    // Reduced stroke thickness for pencil feel
+    const strokeThickness = 8;
+    const grainDensity = distance * 0.5; // Number of grain particles
+
+    // Draw many small dots/points along the line for grainy texture
+    for (let i = 0; i < grainDensity; i++) {
+        let t = i / grainDensity;
+
+        // Add some randomness to position along the line
+        let randomT = t + random(-0.01, 0.01);
+        randomT = constrain(randomT, 0, 1);
+
+        let x = lerp(startPos.x, endPos.x, randomT);
+        let y = lerp(startPos.y, endPos.y, randomT);
+
+        // Add perpendicular offset for thickness variation
+        let perpOffset = random(-strokeThickness / 2, strokeThickness / 2);
+        let angle = atan2(dy, dx) + HALF_PI;
+        x += cos(angle) * perpOffset;
+        y += sin(angle) * perpOffset;
+
+        // Vary opacity and size for texture
+        let alpha = random(80, 180);
+        let dotSize = random(0.5, 2);
+
+        noStroke();
+        fill(color[0], color[1], color[2], alpha);
+        circle(x, y, dotSize);
+    }
+
+    pop();
+
+    /* Previous implementation:
+    push();
     for (let i = 0; i < 15; i++) {
         let offsetX = random(-3, 3);
         let offsetY = random(-2, 2);
-
-        // Vary opacity for textured look
         let alpha = map(i, 0, 15, 200, 100);
         stroke(color[0], color[1], color[2], alpha);
         strokeWeight(random(15, 25));
-
-        // Draw slightly offset line for texture
         line(
             startPos.x + offsetX,
             startPos.y + offsetY,
@@ -205,14 +288,7 @@ function drawBookStroke(startPos, endPos, color) {
             endPos.y + offsetY
         );
     }
-
     pop();
-
-    /* p5.brush library implementation (not working correctly):
-    brush.pick('marker');
-    brush.set('color', color, 200);
-    brush.set('weight', 20);
-    brush.line(startPos.x, startPos.y, endPos.x, endPos.y);
     */
 }
 
