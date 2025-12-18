@@ -20,8 +20,27 @@ const TEXT_COLOR = '#000000';
 let booksData = [];
 let bookPositions = [];
 let hoveredBook = null;
+let bookImages = {};
 
 function preload() {
+    // Image mapping for book covers
+    const imageMap = {
+        'Elmer': 'images/elmer.jpg',
+        'Fantastic Four: Grand Design #1 (of 2)': 'images/FantasticFour.jpg',
+        'Abandon the Old in Tokyo': 'images/Abandon_the_Old_in_Tokyo.jpg',
+        'Mooncop': 'images/mooncop.jpeg'
+    };
+
+    // Load book cover images
+    for (let [bookTitle, imagePath] of Object.entries(imageMap)) {
+        loadImage(imagePath, (img) => {
+            bookImages[bookTitle] = img;
+            console.log('Loaded image for:', bookTitle);
+        }, (err) => {
+            console.log('Failed to load image for:', bookTitle, err);
+        });
+    }
+
     // Load CSV data
     loadTable('data/books_2025.csv', 'csv', 'header', (table) => {
         console.log('CSV loaded, rows:', table.getRowCount());
@@ -31,18 +50,19 @@ function preload() {
             let row = table.getRow(i);
 
             // Safely get values, with fallbacks
+            // CSV columns: title, author, avg_rating, rating, date_read, date_added
             let title = row.get('title') || row.getString(0) || '';
             let author = row.get('author') || row.getString(1) || '';
             let avgRating = row.get('avg_rating') || row.getString(2) || '';
             let rating = row.get('rating') || row.getString(3) || '';
-            let dateStarted = row.get('date_started') || row.getString(4) || '';
-            let dateRead = row.get('date_read') || row.getString(5) || '';
+            let dateRead = row.get('date_read') || row.getString(4) || '';
+            let dateAdded = row.get('date_added') || row.getString(5) || '';
 
             booksData.push({
                 title: title,
                 author: author,
-                startDate: dateStarted,  // When started reading
-                endDate: dateRead,       // When finished reading
+                startDate: dateAdded,    // When started reading (date_added)
+                endDate: dateRead,       // When finished reading (date_read)
                 rating: rating,
                 avgRating: avgRating
             });
@@ -154,19 +174,20 @@ function drawTooltip(bookPos) {
 
     // Tooltip styling
     const padding = 10;
-    const maxWidth = 250;
+    const imageSize = 60;
+    const maxTextWidth = 200;
 
     textFont('Inter');
     textSize(12);
 
     let titleText = bookPos.book.title;
     let authorText = bookPos.book.author;
+    let bookImage = bookImages[titleText];
 
-    // Measure text
-    let titleWidth = textWidth(titleText);
-    let authorWidth = textWidth(authorText);
-    let tooltipWidth = min(max(titleWidth, authorWidth) + padding * 2, maxWidth);
-    let tooltipHeight = 50;
+    // Calculate dimensions
+    let hasImage = bookImage !== undefined;
+    let tooltipWidth = hasImage ? imageSize + maxTextWidth + padding * 3 : maxTextWidth + padding * 2;
+    let tooltipHeight = hasImage ? max(imageSize + padding * 2, 70) : 50;
 
     // Position tooltip near mouse
     let tooltipX = mouseX + 15;
@@ -175,6 +196,7 @@ function drawTooltip(bookPos) {
     // Keep tooltip within canvas bounds
     if (tooltipX + tooltipWidth > width) tooltipX = mouseX - tooltipWidth - 15;
     if (tooltipY < 0) tooltipY = mouseY + 15;
+    if (tooltipY + tooltipHeight > height) tooltipY = height - tooltipHeight - 10;
 
     // Draw tooltip background
     fill(255, 255, 255, 240);
@@ -182,15 +204,32 @@ function drawTooltip(bookPos) {
     strokeWeight(1);
     rect(tooltipX, tooltipY, tooltipWidth, tooltipHeight, 4);
 
+    // Draw book cover if available
+    if (hasImage) {
+        let imgAspect = bookImage.width / bookImage.height;
+        let imgWidth = imageSize;
+        let imgHeight = imageSize;
+
+        // Maintain aspect ratio
+        if (imgAspect > 1) {
+            imgHeight = imageSize / imgAspect;
+        } else {
+            imgWidth = imageSize * imgAspect;
+        }
+
+        image(bookImage, tooltipX + padding, tooltipY + padding, imgWidth, imgHeight);
+    }
+
     // Draw text
+    let textX = hasImage ? tooltipX + imageSize + padding * 2 : tooltipX + padding;
     noStroke();
     fill(0);
     textAlign(LEFT, TOP);
-    text(titleText, tooltipX + padding, tooltipY + padding, tooltipWidth - padding * 2);
+    text(titleText, textX, tooltipY + padding, maxTextWidth - padding);
 
     textSize(10);
     fill(100);
-    text(authorText, tooltipX + padding, tooltipY + 28, tooltipWidth - padding * 2);
+    text(authorText, textX, tooltipY + padding + 20, maxTextWidth - padding);
 
     pop();
 }
