@@ -12,7 +12,7 @@ let CELL_WIDTH = 30;
 let CELL_HEIGHT = 60;
 
 // Colors
-const BG_COLOR = '#e8dcc4';
+const BG_COLOR = '#FAFFCE';
 const GRID_COLOR = '#000000';
 const TEXT_COLOR = '#000000';
 
@@ -33,14 +33,14 @@ function preload() {
             let author = row.get('author') || row.getString(1) || '';
             let avgRating = row.get('avg_rating') || row.getString(2) || '';
             let rating = row.get('rating') || row.getString(3) || '';
-            let dateRead = row.get('date_read') || row.getString(4) || '';
-            let dateAdded = row.get('date_added') || row.getString(5) || '';
+            let dateStarted = row.get('date_started') || row.getString(4) || '';
+            let dateRead = row.get('date_read') || row.getString(5) || '';
 
             booksData.push({
                 title: title,
                 author: author,
-                startDate: dateAdded,  // When started reading
-                endDate: dateRead,     // When finished reading
+                startDate: dateStarted,  // When started reading
+                endDate: dateRead,       // When finished reading
                 rating: rating,
                 avgRating: avgRating
             });
@@ -82,10 +82,10 @@ function drawCalendarGrid() {
     strokeWeight(1);
     fill(TEXT_COLOR);
 
-    // Draw year label
+    // Draw year label (aligned with months)
     textSize(16);
-    textAlign(LEFT, TOP);
-    text('2025', MARGIN_LEFT - 60, 20);
+    textAlign(RIGHT, CENTER);
+    text('2025', MARGIN_LEFT - 15, MARGIN_TOP / 2);
 
     // Draw day numbers at the top
     textSize(12);
@@ -107,16 +107,12 @@ function drawCalendarGrid() {
         // Horizontal line (top of month row)
         line(MARGIN_LEFT, y, MARGIN_LEFT + 31 * CELL_WIDTH, y);
 
-        // Vertical lines for days
+        // Vertical lines for days (only draw the left edge and day separators)
         for (let day = 0; day <= 31; day++) {
             let x = MARGIN_LEFT + day * CELL_WIDTH;
             line(x, y, x, y + CELL_HEIGHT);
         }
     }
-
-    // Bottom border
-    line(MARGIN_LEFT, MARGIN_TOP + 12 * CELL_HEIGHT,
-         MARGIN_LEFT + 31 * CELL_WIDTH, MARGIN_TOP + 12 * CELL_HEIGHT);
 }
 
 function drawBooks() {
@@ -140,7 +136,12 @@ function drawBooks() {
         let start = parseDateString(book.startDate);
         let end = parseDateString(book.endDate);
 
-        if (!start || !end) return;
+        if (!end) return;
+
+        // If start date is before 2025 or missing, use Jan 1, 2025
+        if (!start || start.year < YEAR) {
+            start = { year: YEAR, month: 0, day: 1 };
+        }
 
         // Get positions
         let startPos = getDatePosition(start.month, start.day);
