@@ -270,7 +270,7 @@ function drawBookStroke(startPos, endPos, color) {
         x += cos(angle + HALF_PI) * perpOffset;
         y += sin(angle + HALF_PI) * perpOffset;
 
-        let alpha = random(120, 200);
+        let alpha = random(60, 100);  // Reduced by 50%
         let dotSize = random(1.5, 3);
 
         noStroke();
@@ -280,7 +280,7 @@ function drawBookStroke(startPos, endPos, color) {
 
     // Layer 2: Multiple overlapping strokes for body
     for (let layer = 0; layer < 12; layer++) {
-        stroke(color[0], color[1], color[2], random(60, 120));
+        stroke(color[0], color[1], color[2], random(30, 60));  // Reduced by 50%
         strokeWeight(random(14, 22));
 
         let offsetX = random(-1.5, 1.5);
@@ -302,7 +302,7 @@ function drawBookStroke(startPos, endPos, color) {
         let y = lerp(startPos.y, endPos.y, t) + random(-2, 2);
 
         noStroke();
-        fill(color[0], color[1], color[2], random(100, 180));
+        fill(color[0], color[1], color[2], random(50, 90));  // Reduced by 50%
         circle(x, y, random(1.5, 3));
     }
 
