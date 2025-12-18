@@ -81,7 +81,7 @@ function setup() {
     textFont('Inter');
 
     // Initialize p5.brush library
-    brush.instance(this);
+    // Try loading without instance() call
     brush.load(() => {
         console.log('Brush library loaded');
         brushReady = true;
