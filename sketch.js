@@ -198,10 +198,16 @@ function drawBooks() {
         });
     });
 
-    // Sort by start date
+    // Calculate duration for each book
+    bookPositions.forEach(bookPos => {
+        let startDay = bookPos.start.month * 31 + bookPos.start.day;
+        let endDay = bookPos.end.month * 31 + bookPos.end.day;
+        bookPos.duration = endDay - startDay;
+    });
+
+    // Sort by duration (larger first) so smaller books are drawn on top
     bookPositions.sort((a, b) => {
-        if (a.start.month !== b.start.month) return a.start.month - b.start.month;
-        return a.start.day - b.start.day;
+        return b.duration - a.duration;
     });
 
     // Assign vertical offsets to avoid overlaps
@@ -270,7 +276,7 @@ function drawBookStroke(startPos, endPos, color) {
         x += cos(angle + HALF_PI) * perpOffset;
         y += sin(angle + HALF_PI) * perpOffset;
 
-        let alpha = random(60, 100);  // Reduced by 50%
+        let alpha = random(30, 50);  // Watercolor effect - very light
         let dotSize = random(1.5, 3);
 
         noStroke();
@@ -280,7 +286,7 @@ function drawBookStroke(startPos, endPos, color) {
 
     // Layer 2: Multiple overlapping strokes for body
     for (let layer = 0; layer < 12; layer++) {
-        stroke(color[0], color[1], color[2], random(30, 60));  // Reduced by 50%
+        stroke(color[0], color[1], color[2], random(15, 30));  // Watercolor effect - very light
         strokeWeight(random(14, 22));
 
         let offsetX = random(-1.5, 1.5);
@@ -302,7 +308,7 @@ function drawBookStroke(startPos, endPos, color) {
         let y = lerp(startPos.y, endPos.y, t) + random(-2, 2);
 
         noStroke();
-        fill(color[0], color[1], color[2], random(50, 90));  // Reduced by 50%
+        fill(color[0], color[1], color[2], random(25, 45));  // Watercolor effect - very light
         circle(x, y, random(1.5, 3));
     }
 
