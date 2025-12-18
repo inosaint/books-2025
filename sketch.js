@@ -18,8 +18,6 @@ const TEXT_COLOR = '#000000';
 
 // Data
 let booksData = [];
-let brushReady = false;
-let hasDrawn = false;
 
 function preload() {
     // Load CSV data
@@ -60,34 +58,13 @@ function setup() {
 
     textFont('Inter');
 
-    // Initialize brush library
-    console.log('Initializing brush library...');
-    brush.instance(this);
-    brush.load();
+    // Set random seed for consistent texture
+    randomSeed(42);
 
-    // Set ready after a short delay to ensure brush loads
-    setTimeout(() => {
-        console.log('Brush library ready');
-        brushReady = true;
-    }, 100);
+    console.log('Setup complete');
 }
 
 function draw() {
-    // Wait for brush to be ready
-    if (!brushReady) {
-        background(BG_COLOR);
-        fill(TEXT_COLOR);
-        textSize(16);
-        textAlign(CENTER, CENTER);
-        text('Loading...', width / 2, height / 2);
-        return;
-    }
-
-    // Only draw once when ready
-    if (hasDrawn) {
-        return;
-    }
-
     background(BG_COLOR);
 
     // Draw calendar grid
@@ -96,7 +73,7 @@ function draw() {
     // Draw book visualizations
     drawBooks();
 
-    hasDrawn = true;
+    noLoop(); // Only draw once
     console.log('Visualization drawn');
 }
 
@@ -176,13 +153,29 @@ function drawBooks() {
 }
 
 function drawBookStroke(startPos, endPos, color) {
-    // Set brush properties
-    brush.set('marker', color, 0.8);
-    brush.strokeWeight(20);
-    brush.bleed(0.3);
+    // Create textured marker-like stroke effect using native p5.js
+    push();
 
-    // Draw textured line from start to end
-    brush.line(startPos.x, startPos.y, endPos.x, endPos.y);
+    // Draw multiple overlapping lines for texture
+    for (let i = 0; i < 15; i++) {
+        let offsetX = random(-3, 3);
+        let offsetY = random(-2, 2);
+
+        // Vary opacity for textured look
+        let alpha = map(i, 0, 15, 200, 100);
+        stroke(color[0], color[1], color[2], alpha);
+        strokeWeight(random(15, 25));
+
+        // Draw slightly offset line for texture
+        line(
+            startPos.x + offsetX,
+            startPos.y + offsetY,
+            endPos.x + offsetX,
+            endPos.y + offsetY
+        );
+    }
+
+    pop();
 }
 
 function getDatePosition(month, day) {
