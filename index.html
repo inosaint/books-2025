@@ -50,13 +50,41 @@
             padding: 20px;
             text-align: left;
             min-height: 60px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        footer .left-column {
+            grid-column: 1;
+        }
+
+        footer .right-column {
+            grid-column: 2;
+        }
+
+        /* Mobile: single column */
+        @media (max-width: 767px) {
+            footer {
+                grid-template-columns: 1fr;
+                padding: 15px;
+            }
+
+            footer .right-column {
+                display: none;
+            }
         }
     </style>
 </head>
 <body>
     <main></main>
     <footer id="comments">
-        <!-- Comments will go here later -->
+        <div class="left-column">
+            <!-- Comments text goes here -->
+        </div>
+        <div class="right-column">
+            <!-- Right column content (empty for now) -->
+        </div>
     </footer>
     <script src="sketch.js"></script>
 </body>
