@@ -35,7 +35,12 @@ function preload() {
         'Notes from an Island': 'images/notesfromisland.jpg',
         'The Strange': 'images/thestrange.jpeg',
         'Zodiac: A Graphic Memoir': 'images/zodiac.jpeg',
-        'The Iron Man': 'images/irongiant.jpg'
+        'The Iron Man': 'images/irongiant.jpg',
+        'Exit Strategy (The Murderbot Diaries #4)':'images/exitstrategy.jpg',
+        'The Wild Girls':'images/wildgirls.jpg',
+        'Neptune episode 1':'images/neptune1.jpg',
+        'Neptune episode 2':'images/neptune2.jpg',
+        'The Loneliness of the Long-Distance Cartoonist':'images/loneliness.jpg'
     };
 
     // Load book cover images
