@@ -21,15 +21,16 @@ let booksData = [];
 
 function preload() {
     // Load CSV data
-    loadTable('data/books.csv', 'csv', 'header', (table) => {
+    loadTable('data/books_2025.csv', 'csv', 'header', (table) => {
         for (let i = 0; i < table.getRowCount(); i++) {
             let row = table.getRow(i);
             booksData.push({
                 title: row.getString('title'),
                 author: row.getString('author'),
-                startDate: row.getString('start_date'),
-                endDate: row.getString('end_date'),
-                pages: row.getNum('pages')
+                startDate: row.getString('date_added'),  // When started reading
+                endDate: row.getString('date_read'),      // When finished reading
+                rating: row.getString('rating'),
+                avgRating: row.getString('avg_rating')
             });
         }
     });
@@ -154,17 +155,42 @@ function getDatePosition(month, day) {
 }
 
 function parseDateString(dateStr) {
-    // Expected format: YYYY-MM-DD or MM/DD/YYYY
-    let parts;
+    // Expected formats: "Dec 05 2025", "Mar 2025", "YYYY-MM-DD", or "MM/DD/YYYY"
+    if (!dateStr) return null;
+
     let year, month, day;
 
-    if (dateStr.includes('-')) {
-        parts = dateStr.split('-');
+    // Handle "Dec 05 2025" or "Mar 2025" format
+    if (dateStr.match(/[A-Za-z]/)) {
+        const parts = dateStr.trim().split(/\s+/);
+        const monthStr = parts[0];
+
+        // Parse month
+        const monthIndex = MONTHS.findIndex(m => m === monthStr);
+        if (monthIndex === -1) return null;
+        month = monthIndex;
+
+        // Parse day (if provided, otherwise use 1st of month)
+        if (parts.length === 3) {
+            day = parseInt(parts[1]);
+            year = parseInt(parts[2]);
+        } else if (parts.length === 2) {
+            day = 1; // Default to 1st of the month
+            year = parseInt(parts[1]);
+        } else {
+            return null;
+        }
+    }
+    // Handle YYYY-MM-DD format
+    else if (dateStr.includes('-')) {
+        const parts = dateStr.split('-');
         year = parseInt(parts[0]);
         month = parseInt(parts[1]) - 1; // 0-indexed
         day = parseInt(parts[2]);
-    } else if (dateStr.includes('/')) {
-        parts = dateStr.split('/');
+    }
+    // Handle MM/DD/YYYY format
+    else if (dateStr.includes('/')) {
+        const parts = dateStr.split('/');
         month = parseInt(parts[0]) - 1; // 0-indexed
         day = parseInt(parts[1]);
         year = parseInt(parts[2]);
