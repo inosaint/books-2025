@@ -18,7 +18,6 @@ const TEXT_COLOR = '#000000';
 
 // Data
 let booksData = [];
-let brushReady = false;
 
 function preload() {
     // Load CSV data
@@ -80,28 +79,13 @@ function setup() {
 
     textFont('Inter');
 
-    // Initialize p5.brush library
-    // Try loading without instance() call
-    brush.load(() => {
-        console.log('Brush library loaded');
-        brushReady = true;
-        redraw();
-    });
+    // Set random seed for consistent texture
+    randomSeed(42);
 
     console.log('Setup complete');
 }
 
 function draw() {
-    // Wait for brush library to load
-    if (!brushReady) {
-        background(BG_COLOR);
-        fill(TEXT_COLOR);
-        textSize(16);
-        textAlign(CENTER, CENTER);
-        text('Loading brushes...', width / 2, height / 2);
-        return;
-    }
-
     background(BG_COLOR);
 
     // Draw calendar grid
@@ -251,20 +235,65 @@ function datesOverlap(start1, end1, start2, end2) {
 }
 
 function drawBookStroke(startPos, endPos, color) {
-    // Use p5.brush library for authentic textured strokes
+    // Dense grainy textured stroke using native p5.js
     push();
 
-    // Set brush to marker type with dense grain
-    brush.pick('marker');
+    let dx = endPos.x - startPos.x;
+    let dy = endPos.y - startPos.y;
+    let distance = dist(startPos.x, startPos.y, endPos.x, endPos.y);
+    let angle = atan2(dy, dx);
 
-    // Configure brush properties for thick, grainy texture
-    brush.set('color', color, 200);
-    brush.set('weight', 20);
-    brush.set('bleed', 0.3);
-    brush.set('field', 'seabed');  // Adds organic variation
+    const strokeThickness = 20;
 
-    // Draw the stroke
-    brush.line(startPos.x, startPos.y, endPos.x, endPos.y);
+    // Layer 1: Very dense base grain for solid texture
+    const baseGrainDensity = distance * 10;
+    for (let i = 0; i < baseGrainDensity; i++) {
+        let t = i / baseGrainDensity;
+        let randomT = t + random(-0.002, 0.002);
+        randomT = constrain(randomT, 0, 1);
+
+        let x = lerp(startPos.x, endPos.x, randomT);
+        let y = lerp(startPos.y, endPos.y, randomT);
+
+        let perpOffset = random(-strokeThickness / 2, strokeThickness / 2);
+        x += cos(angle + HALF_PI) * perpOffset;
+        y += sin(angle + HALF_PI) * perpOffset;
+
+        let alpha = random(120, 200);
+        let dotSize = random(1.5, 3);
+
+        noStroke();
+        fill(color[0], color[1], color[2], alpha);
+        circle(x, y, dotSize);
+    }
+
+    // Layer 2: Multiple overlapping strokes for body
+    for (let layer = 0; layer < 12; layer++) {
+        stroke(color[0], color[1], color[2], random(60, 120));
+        strokeWeight(random(14, 22));
+
+        let offsetX = random(-1.5, 1.5);
+        let offsetY = random(-1.5, 1.5);
+
+        line(
+            startPos.x + offsetX,
+            startPos.y + offsetY,
+            endPos.x + offsetX,
+            endPos.y + offsetY
+        );
+    }
+
+    // Layer 3: Top grain layer for extra texture
+    const topGrainDensity = distance * 6;
+    for (let i = 0; i < topGrainDensity; i++) {
+        let t = i / topGrainDensity;
+        let x = lerp(startPos.x, endPos.x, t) + random(-2, 2);
+        let y = lerp(startPos.y, endPos.y, t) + random(-2, 2);
+
+        noStroke();
+        fill(color[0], color[1], color[2], random(100, 180));
+        circle(x, y, random(1.5, 3));
+    }
 
     pop();
 }
