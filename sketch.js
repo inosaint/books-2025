@@ -65,7 +65,12 @@ function setup() {
     const canvasHeight = idealHeight * scale;
 
     let canvas = createCanvas(canvasWidth, canvasHeight);
-    canvas.parent('main');
+
+    // Attach canvas to main element
+    const mainElement = document.querySelector('main');
+    if (mainElement) {
+        canvas.parent(mainElement);
+    }
 
     // Scale everything if needed
     if (scale < 1) {
