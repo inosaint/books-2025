@@ -252,7 +252,7 @@ function datesOverlap(start1, end1, start2, end2) {
 }
 
 function drawBookStroke(startPos, endPos, color) {
-    // Dense grainy textured stroke using native p5.js
+    // Clean watercolor stroke without grain
     push();
 
     let dx = endPos.x - startPos.x;
@@ -262,29 +262,7 @@ function drawBookStroke(startPos, endPos, color) {
 
     const strokeThickness = 20;
 
-    // Layer 1: Very dense base grain for solid texture
-    const baseGrainDensity = distance * 10;
-    for (let i = 0; i < baseGrainDensity; i++) {
-        let t = i / baseGrainDensity;
-        let randomT = t + random(-0.002, 0.002);
-        randomT = constrain(randomT, 0, 1);
-
-        let x = lerp(startPos.x, endPos.x, randomT);
-        let y = lerp(startPos.y, endPos.y, randomT);
-
-        let perpOffset = random(-strokeThickness / 2, strokeThickness / 2);
-        x += cos(angle + HALF_PI) * perpOffset;
-        y += sin(angle + HALF_PI) * perpOffset;
-
-        let alpha = random(30, 50);  // Watercolor effect - very light
-        let dotSize = random(1.5, 3);
-
-        noStroke();
-        fill(color[0], color[1], color[2], alpha);
-        circle(x, y, dotSize);
-    }
-
-    // Layer 2: Multiple overlapping strokes for body
+    // Multiple overlapping strokes for watercolor effect
     for (let layer = 0; layer < 12; layer++) {
         stroke(color[0], color[1], color[2], random(15, 30));  // Watercolor effect - very light
         strokeWeight(random(14, 22));
@@ -298,18 +276,6 @@ function drawBookStroke(startPos, endPos, color) {
             endPos.x + offsetX,
             endPos.y + offsetY
         );
-    }
-
-    // Layer 3: Top grain layer for extra texture
-    const topGrainDensity = distance * 6;
-    for (let i = 0; i < topGrainDensity; i++) {
-        let t = i / topGrainDensity;
-        let x = lerp(startPos.x, endPos.x, t) + random(-2, 2);
-        let y = lerp(startPos.y, endPos.y, t) + random(-2, 2);
-
-        noStroke();
-        fill(color[0], color[1], color[2], random(25, 45));  // Watercolor effect - very light
-        circle(x, y, random(1.5, 3));
     }
 
     pop();
