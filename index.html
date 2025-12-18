@@ -34,6 +34,16 @@
             justify-content: center;
             align-items: center;
             padding: 20px;
+            overflow-x: auto;
+            overflow-y: hidden;
+        }
+
+        /* Mobile: enable horizontal scroll */
+        @media (max-width: 767px) {
+            main {
+                justify-content: flex-start;
+                padding: 10px;
+            }
         }
 
         footer {

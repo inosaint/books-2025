@@ -50,19 +50,30 @@ function preload() {
 }
 
 function setup() {
-    // Calculate canvas size to fit viewport (leaving room for footer)
-    const maxWidth = windowWidth - 40;
-    const maxHeight = windowHeight - 140; // Leave room for footer
-
-    // Calculate ideal size based on grid
+    // Calculate ideal canvas size
     const idealWidth = MARGIN_LEFT + (31 * CELL_WIDTH) + MARGIN_RIGHT;
     const idealHeight = MARGIN_TOP + (12 * CELL_HEIGHT) + MARGIN_BOTTOM;
 
-    // Scale to fit if needed
-    const scale = min(maxWidth / idealWidth, maxHeight / idealHeight, 1);
+    // On desktop: allow scaling down to fit
+    // On mobile: maintain readable size, allow horizontal scroll
+    const isMobile = windowWidth < 768;
 
-    const canvasWidth = idealWidth * scale;
-    const canvasHeight = idealHeight * scale;
+    let canvasWidth, canvasHeight, scale;
+
+    if (isMobile) {
+        // Mobile: keep minimum readable size, enable horizontal scroll
+        const minHeight = windowHeight - 140;
+        scale = min(minHeight / idealHeight, 1);
+        canvasWidth = idealWidth * scale;
+        canvasHeight = idealHeight * scale;
+    } else {
+        // Desktop: scale to fit viewport
+        const maxWidth = windowWidth - 40;
+        const maxHeight = windowHeight - 140;
+        scale = min(maxWidth / idealWidth, maxHeight / idealHeight, 1);
+        canvasWidth = idealWidth * scale;
+        canvasHeight = idealHeight * scale;
+    }
 
     let canvas = createCanvas(canvasWidth, canvasHeight);
 
@@ -72,7 +83,7 @@ function setup() {
         canvas.parent(mainElement);
     }
 
-    // Scale everything if needed
+    // Scale dimensions if needed
     if (scale < 1) {
         scaleCanvas(scale);
     }
