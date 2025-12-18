@@ -199,6 +199,31 @@ function drawBookStroke(startPos, endPos, color) {
 
     // Draw textured line from start to end
     brush.line(startPos.x, startPos.y, endPos.x, endPos.y);
+
+    /* Previous native p5.js implementation (without brush library):
+    push();
+
+    // Draw multiple overlapping lines for texture
+    for (let i = 0; i < 15; i++) {
+        let offsetX = random(-3, 3);
+        let offsetY = random(-2, 2);
+
+        // Vary opacity for textured look
+        let alpha = map(i, 0, 15, 200, 100);
+        stroke(color[0], color[1], color[2], alpha);
+        strokeWeight(random(15, 25));
+
+        // Draw slightly offset line for texture
+        line(
+            startPos.x + offsetX,
+            startPos.y + offsetY,
+            endPos.x + offsetX,
+            endPos.y + offsetY
+        );
+    }
+
+    pop();
+    */
 }
 
 function getDatePosition(month, day) {
