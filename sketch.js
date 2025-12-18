@@ -25,15 +25,26 @@ function preload() {
     // Load CSV data
     loadTable('data/books_2025.csv', 'csv', 'header', (table) => {
         console.log('CSV loaded, rows:', table.getRowCount());
+        console.log('Columns:', table.columns);
+
         for (let i = 0; i < table.getRowCount(); i++) {
             let row = table.getRow(i);
+
+            // Safely get values, with fallbacks
+            let title = row.get('title') || row.getString(0) || '';
+            let author = row.get('author') || row.getString(1) || '';
+            let avgRating = row.get('avg_rating') || row.getString(2) || '';
+            let rating = row.get('rating') || row.getString(3) || '';
+            let dateRead = row.get('date_read') || row.getString(4) || '';
+            let dateAdded = row.get('date_added') || row.getString(5) || '';
+
             booksData.push({
-                title: row.getString('title'),
-                author: row.getString('author'),
-                startDate: row.getString('date_added'),  // When started reading
-                endDate: row.getString('date_read'),      // When finished reading
-                rating: row.getString('rating'),
-                avgRating: row.getString('avg_rating')
+                title: title,
+                author: author,
+                startDate: dateAdded,  // When started reading
+                endDate: dateRead,     // When finished reading
+                rating: rating,
+                avgRating: avgRating
             });
         }
         console.log('Books data:', booksData);
@@ -47,13 +58,18 @@ function setup() {
 
     createCanvas(canvasWidth, canvasHeight);
 
-    // Initialize brush library with callback
-    brush.load(() => {
-        console.log('Brush library loaded');
-        brushReady = true;
-    });
-
     textFont('Inter');
+
+    // Initialize brush library
+    console.log('Initializing brush library...');
+    brush.instance(this);
+    brush.load();
+
+    // Set ready after a short delay to ensure brush loads
+    setTimeout(() => {
+        console.log('Brush library ready');
+        brushReady = true;
+    }, 100);
 }
 
 function draw() {
