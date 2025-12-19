@@ -412,8 +412,12 @@ function drawBooks() {
         });
 
         // Assign vertical offsets to avoid overlaps
+        // Track how many overlaps each book has for variable spacing
+        const overlapCounts = new Map();
+
         bookPositions.forEach((bookPos, i) => {
             let offset = 0;
+            let overlapCount = 0;
 
             // Check for overlaps with previous books
             for (let j = 0; j < i; j++) {
@@ -421,12 +425,15 @@ function drawBooks() {
 
                 // Check if books overlap in time
                 if (datesOverlap(bookPos.start, bookPos.end, other.start, other.end)) {
-                    // Stack this book below the other with 15px margin for better separation
-                    offset = Math.max(offset, (other.offset || 0) + 15);
+                    // Variable spacing: tighter for outer books (10.5px), looser for inner (15px)
+                    const spacing = overlapCount === 0 ? 10.5 : 15;
+                    offset = Math.max(offset, (other.offset || 0) + spacing);
+                    overlapCount++;
                 }
             }
 
             bookPos.offset = offset;
+            overlapCounts.set(bookPos, overlapCount);
         });
 
         // Calculate max offset per month to center stacked books
