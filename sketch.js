@@ -318,26 +318,26 @@ function drawBooks() {
     if (booksData.length === 0) return;
 
     // Define brighter color palette for books (avoiding yellow due to background)
-    // Expanded palette to ensure unique colors for all books
+    // Carefully chosen colors to maximize distinction between books
     const colors = [
-        [255, 100, 100], // Bright pink/red
-        [100, 220, 100], // Bright green
-        [100, 100, 255], // Bright blue
-        [100, 200, 220], // Bright cyan
-        [220, 100, 220], // Bright magenta
-        [180, 100, 255], // Bright purple
-        [255, 120, 80],  // Bright orange
-        [255, 80, 150],  // Hot pink
-        [80, 180, 140],  // Teal
-        [200, 100, 150], // Rose
-        [140, 100, 200], // Violet
-        [100, 150, 255], // Sky blue
-        [255, 140, 100], // Coral
-        [180, 220, 100], // Lime
-        [220, 140, 200], // Orchid
-        [100, 220, 200], // Aqua
-        [200, 120, 100], // Terracotta
-        [150, 100, 220], // Deep purple
+        [255, 80, 80],   // Bright red
+        [80, 200, 80],   // Bright green
+        [80, 80, 255],   // Bright blue
+        [100, 180, 200], // Cyan
+        [200, 80, 200],  // Magenta
+        [160, 80, 240],  // Purple
+        [255, 130, 70],  // Orange
+        [255, 100, 160], // Hot pink
+        [40, 140, 100],  // Dark teal (Kinfolk)
+        [180, 100, 120], // Mauve
+        [120, 80, 180],  // Deep violet
+        [100, 160, 255], // Sky blue
+        [255, 120, 90],  // Coral
+        [160, 200, 80],  // Lime
+        [200, 120, 180], // Orchid
+        [140, 220, 180], // Mint green (Exit Strategy - distinct from dark teal)
+        [180, 100, 80],  // Rust/terracotta
+        [140, 100, 200], // Lavender
     ];
 
     // Parse all books and detect overlaps (only do this once)
