@@ -1,7 +1,7 @@
 // DEBUG: Enable/disable visualizations for easier debugging
 const VIZ_CONFIG = {
-    watercolor: true,
-    ballpen: true,
+    watercolor: false,
+    ballpen: false,
     brush: true
 };
 
@@ -142,6 +142,10 @@ function setup() {
     }
 
     textFont('Inter');
+
+    // Initialize p5.brush (optional, but recommended)
+    // If not called, uses window's rendering context by default
+    brush.load();
 
     // Set random seed for consistent texture
     randomSeed(42);
