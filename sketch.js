@@ -426,6 +426,21 @@ function drawBooks() {
 
             bookPos.offset = offset;
         });
+
+        // Calculate max offset per month to center stacked books
+        const maxOffsetPerMonth = new Array(12).fill(0);
+        bookPositions.forEach(bookPos => {
+            const month = bookPos.start.month;
+            maxOffsetPerMonth[month] = Math.max(maxOffsetPerMonth[month], bookPos.offset);
+        });
+
+        // Adjust offsets to center stacks within each month row
+        bookPositions.forEach(bookPos => {
+            const month = bookPos.start.month;
+            const maxOffset = maxOffsetPerMonth[month];
+            // Shift the entire stack up to center it in the row
+            bookPos.offset = bookPos.offset - maxOffset / 2;
+        });
     }
 
     // Draw all books with their offsets
