@@ -260,7 +260,7 @@ function drawTooltip(bookPos) {
     textSize(10);
     textLeading(12);
     fill(100);
-    text(authorText, textX, textY + 30, textAreaWidth);
+    text(authorText, textX, textY + 16, textAreaWidth);
 
     pop();
 }
