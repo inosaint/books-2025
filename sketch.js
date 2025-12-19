@@ -124,7 +124,7 @@ function setup() {
         canvasHeight = totalHeight * scale;
     }
 
-    let canvas = createCanvas(canvasWidth, canvasHeight);
+    let canvas = createCanvas(canvasWidth, canvasHeight, WEBGL);
 
     // Attach canvas to main element
     const mainElement = document.querySelector('main');
@@ -595,15 +595,15 @@ function drawBookStrokeBallpen(startPos, endPos, color) {
 }
 
 function drawBookStrokeBrush(startPos, endPos, color) {
-    // P5.Brush style using the marker brush
+    // P5.Brush style using the cpencil brush
     push();
 
     // Convert color array to p5.Color object
     let brushColor = color(color[0], color[1], color[2]);
 
-    // Set the marker brush with the color and weight
+    // Set the cpencil brush with the color and weight
     // Weight is a multiplier on the base brush size
-    brush.set('marker', brushColor, 1);
+    brush.set('cpencil', brushColor, 1);
 
     // Draw the line
     brush.line(startPos.x, startPos.y, endPos.x, endPos.y);
