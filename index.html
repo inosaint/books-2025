@@ -29,29 +29,20 @@
         }
 
         main {
+            flex: 1;
             display: flex;
-            flex-direction: column;
             justify-content: center;
             align-items: center;
             padding: 20px;
             overflow-x: auto;
-            overflow-y: auto;
-        }
-
-        main canvas {
-            display: block;
+            overflow-y: hidden;
         }
 
         /* Mobile: enable horizontal scroll */
         @media (max-width: 767px) {
             main {
-                display: block;
-                padding: 10px 10px 10px 0;
-            }
-
-            main canvas {
-                margin: 0;
-                display: block;
+                justify-content: flex-start;
+                padding: 10px;
             }
         }
 
