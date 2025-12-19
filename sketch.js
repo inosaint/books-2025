@@ -1,7 +1,7 @@
 // DEBUG: Enable/disable visualizations for easier debugging
 const VIZ_CONFIG = {
     watercolor: false,
-    ballpen: false,
+    ballpen: true,
     brush: true
 };
 
