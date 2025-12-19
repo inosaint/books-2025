@@ -419,8 +419,8 @@ function drawBooks() {
 
                 // Check if books overlap in time
                 if (datesOverlap(bookPos.start, bookPos.end, other.start, other.end)) {
-                    // Stack this book below the other with 5px margin for touch access
-                    offset = Math.max(offset, (other.offset || 0) + 5);
+                    // Stack this book below the other with 15px margin for better separation
+                    offset = Math.max(offset, (other.offset || 0) + 15);
                 }
             }
 
