@@ -143,10 +143,6 @@ function setup() {
 
     textFont('Inter');
 
-    // Initialize p5.brush (optional, but recommended)
-    // If not called, uses window's rendering context by default
-    brush.load();
-
     // Set random seed for consistent texture
     randomSeed(42);
 
@@ -595,18 +591,46 @@ function drawBookStrokeBallpen(startPos, endPos, color) {
 }
 
 function drawBookStrokeBrush(startPos, endPos, color) {
-    // P5.Brush style using the cpencil brush
+    // Custom cpencil-style brush mimicking p5.brush parameters
+    // cpencil params: weight=0.4, vibration=0.6, definition=0.8, quality=7, opacity=120, spacing=0.15
     push();
 
-    // Convert color array to p5.Color object
-    let brushColor = color(color[0], color[1], color[2]);
+    const brushWeight = 20; // Base weight
+    const vibration = 0.6 * brushWeight;
+    const definition = 0.8;
+    const quality = 7;
+    const opacity = 120;
+    const spacing = 0.15 * brushWeight;
 
-    // Set the cpencil brush with the color and weight
-    // Weight is a multiplier on the base brush size
-    brush.set('cpencil', brushColor, 1);
+    // Calculate line length and angle
+    let dx = endPos.x - startPos.x;
+    let dy = endPos.y - startPos.y;
+    let distance = dist(startPos.x, startPos.y, endPos.x, endPos.y);
+    let numPoints = Math.floor(distance / spacing);
 
-    // Draw the line
-    brush.line(startPos.x, startPos.y, endPos.x, endPos.y);
+    // Draw points along the line
+    for (let i = 0; i <= numPoints; i++) {
+        let t = i / numPoints;
+        let x = startPos.x + dx * t;
+        let y = startPos.y + dy * t;
+
+        // Pressure simulation (gaussian-like variation along stroke)
+        let pressure = 0.95 + 0.25 * Math.sin(t * Math.PI);
+
+        // Vibration with definition
+        let vib = vibration * (definition + (1 - definition) * randomGaussian() * pressure);
+
+        // Draw multiple circles per point for quality
+        if (random(0, quality * pressure) > 0.4) {
+            fill(color[0], color[1], color[2], opacity * pressure);
+            noStroke();
+            circle(
+                x + 0.7 * vib * random(-1, 1),
+                y + vib * random(-1, 1),
+                pressure * brushWeight * random(0.85, 1.15)
+            );
+        }
+    }
 
     pop();
 }
