@@ -423,29 +423,58 @@ function drawBooks() {
             return b.duration - a.duration;
         });
 
-        // Assign vertical offsets to avoid overlaps
-        // Track how many overlaps each book has for variable spacing
-        const overlapCounts = new Map();
+        // Assign vertical offsets with largest book at center and smaller ones alternating around it
+        // Track overlapping book groups
+        const overlapGroups = [];
 
         bookPositions.forEach((bookPos, i) => {
-            let offset = 0;
-            let overlapCount = 0;
+            // Find which existing group this book overlaps with
+            let foundGroup = false;
 
-            // Check for overlaps with previous books
-            for (let j = 0; j < i; j++) {
-                let other = bookPositions[j];
+            for (let group of overlapGroups) {
+                // Check if this book overlaps with any book in the group
+                let overlapsWithGroup = group.some(other =>
+                    datesOverlap(bookPos.start, bookPos.end, other.start, other.end)
+                );
 
-                // Check if books overlap in time
-                if (datesOverlap(bookPos.start, bookPos.end, other.start, other.end)) {
-                    // Variable spacing: tighter for outer books, looser for inner
-                    const spacing = overlapCount === 0 ? 9.5 : 13.5;
-                    offset = Math.max(offset, (other.offset || 0) + spacing);
-                    overlapCount++;
+                if (overlapsWithGroup) {
+                    group.push(bookPos);
+                    foundGroup = true;
+                    break;
                 }
             }
 
-            bookPos.offset = offset;
-            overlapCounts.set(bookPos, overlapCount);
+            // If no overlap with existing groups, create new group
+            if (!foundGroup) {
+                overlapGroups.push([bookPos]);
+            }
+        });
+
+        // For each overlap group, assign offsets with largest at center
+        overlapGroups.forEach(group => {
+            // Sort group by duration (largest first)
+            group.sort((a, b) => b.duration - a.duration);
+
+            // Assign offsets alternating around 0
+            group.forEach((bookPos, index) => {
+                if (index === 0) {
+                    // Largest book at center
+                    bookPos.offset = 0;
+                } else {
+                    // Alternate above and below with variable spacing
+                    const level = Math.ceil(index / 2);
+                    const direction = index % 2 === 1 ? 1 : -1; // Odd = above, even = below
+
+                    // Calculate cumulative offset with variable spacing
+                    let cumulativeOffset = 0;
+                    for (let i = 1; i <= level; i++) {
+                        const spacing = i === 1 ? 6.65 : 9.45; // First gap tighter, subsequent looser
+                        cumulativeOffset += spacing;
+                    }
+
+                    bookPos.offset = direction * cumulativeOffset;
+                }
+            });
         });
 
         // Calculate max offset per month to center stacked books
