@@ -14,7 +14,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
 
     <!-- p5.brush library -->
-    <script src="assets/p5.brush.js"></script>
+    <!-- <script src="assets/p5.brush.js"></script> -->
 
     <style>
         body {
@@ -29,7 +29,6 @@
         }
 
         main {
-            flex: 1;
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -37,12 +36,6 @@
             padding: 20px;
             overflow-x: auto;
             overflow-y: auto;
-        }
-
-        #loading {
-            text-align: center;
-            font-size: 16px;
-            color: #000;
         }
 
         /* Mobile: enable horizontal scroll */
@@ -55,48 +48,41 @@
 
         footer {
             padding: 20px;
-            text-align: left;
-            min-height: 60px;
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            gap: 20px;
+            max-width: 1000px;
+            margin: 0 auto;
+            line-height: 1.6;
         }
 
-        footer .left-column {
-            flex: 1;
+        footer p {
+            margin: 0 0 10px 0;
         }
 
-        footer .right-column {
-            flex: 1;
+        footer p:last-child {
+            margin-bottom: 0;
         }
 
-        /* Mobile: single column */
+        footer a {
+            color: #000;
+            text-decoration: underline;
+        }
+
+        /* Mobile adjustments */
         @media (max-width: 767px) {
             footer {
-                flex-direction: column;
-                padding: 10px;
-            }
-
-            footer .right-column {
-                display: none;
+                padding: 15px 10px;
+                font-size: 14px;
             }
         }
     </style>
 </head>
 <body>
     <main>
-        <div id="loading">Loading...</div>
+        
     </main>
     <footer id="comments">
-        <div class="left-column">
-            2025 was an average year in terms of my reading, if not for the reading retreat in December, the effective number of books I read would be far lesser. However I felt that I should still consider visualizing this in a fun way.
-            <br><br>
-            <a href="https://github.com/inosaint/books-2025" target="_blank" style="color: #000; text-decoration: underline;">View on GitHub</a>
-        </div>
-        <div class="right-column">
-            Designed in figma, data from Goodreads, developed in P5js using Claude.
-        </div>
+        <p>2025 was an average year in terms of my reading, if not for the reading retreat in December, the effective number of books I read would be far lesser. However I felt that I should still consider visualizing this in a fun way.</p>
+        <p>Designed in Figma, data from Goodreads, developed in p5.js using Claude. </p>
+        <p><a href="https://github.com/inosaint/books-2025" target="_blank">View on GitHub</a></p>
     </footer>
     <script src="sketch.js"></script>
 </body>
