@@ -124,7 +124,7 @@ function setup() {
         canvasHeight = totalHeight * scale;
     }
 
-    let canvas = createCanvas(canvasWidth, canvasHeight, WEBGL);
+    let canvas = createCanvas(canvasWidth, canvasHeight);
 
     // Attach canvas to main element
     const mainElement = document.querySelector('main');
