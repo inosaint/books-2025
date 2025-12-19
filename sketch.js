@@ -1,23 +1,15 @@
-// DEBUG: Enable/disable visualizations for easier debugging
-const VIZ_CONFIG = {
-    watercolor: false,
-    ballpen: true,
-    brush: true
-};
-
 // Calendar configuration
 const YEAR = 2025;
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const DAYS_IN_MONTH = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
 
-// Layout configuration (for one visualization)
+// Layout configuration
 let MARGIN_LEFT = 80;
 let MARGIN_TOP = 80;
 let MARGIN_RIGHT = 40;
 let MARGIN_BOTTOM = 40;
 let CELL_WIDTH = 30;
 let CELL_HEIGHT = 60;
-let VIZ_GAP = 100; // Gap between visualizations
 
 // Colors
 const BG_COLOR = '#FAFFCE';
@@ -92,36 +84,29 @@ function preload() {
 }
 
 function setup() {
-    // Calculate ideal canvas size for ONE visualization
-    const vizWidth = MARGIN_LEFT + (31 * CELL_WIDTH) + MARGIN_RIGHT;
-    const vizHeight = MARGIN_TOP + (12 * CELL_HEIGHT) + MARGIN_BOTTOM;
-
-    // Count enabled visualizations
-    const enabledCount = Object.values(VIZ_CONFIG).filter(v => v).length;
-    const gapCount = Math.max(0, enabledCount - 1);
-
-    // Total canvas height based on enabled visualizations
-    const totalHeight = vizHeight * enabledCount + VIZ_GAP * gapCount;
+    // Calculate ideal canvas size
+    const idealWidth = MARGIN_LEFT + (31 * CELL_WIDTH) + MARGIN_RIGHT;
+    const idealHeight = MARGIN_TOP + (12 * CELL_HEIGHT) + MARGIN_BOTTOM;
 
     // On desktop: allow scaling down to fit
-    // On mobile: maintain readable size, allow scroll
+    // On mobile: maintain readable size, allow horizontal scroll
     const isMobile = windowWidth < 768;
 
     let canvasWidth, canvasHeight, scale;
 
     if (isMobile) {
-        // Mobile: keep minimum readable size, enable scroll
-        const maxHeight = windowHeight * 2.5; // Allow for scrolling
-        scale = min(maxHeight / totalHeight, 1);
-        canvasWidth = vizWidth * scale;
-        canvasHeight = totalHeight * scale;
+        // Mobile: keep minimum readable size, enable horizontal scroll
+        const minHeight = windowHeight - 140;
+        scale = min(minHeight / idealHeight, 1);
+        canvasWidth = idealWidth * scale;
+        canvasHeight = idealHeight * scale;
     } else {
-        // Desktop: scale to fit viewport height
+        // Desktop: scale to fit viewport
         const maxWidth = windowWidth - 40;
-        const maxHeight = windowHeight - 200;
-        scale = min(maxWidth / vizWidth, maxHeight / totalHeight, 1);
-        canvasWidth = vizWidth * scale;
-        canvasHeight = totalHeight * scale;
+        const maxHeight = windowHeight - 140;
+        scale = min(maxWidth / idealWidth, maxHeight / idealHeight, 1);
+        canvasWidth = idealWidth * scale;
+        canvasHeight = idealHeight * scale;
     }
 
     let canvas = createCanvas(canvasWidth, canvasHeight);
@@ -152,41 +137,11 @@ function setup() {
 function draw() {
     background(BG_COLOR);
 
-    // Calculate height of one visualization
-    const vizHeight = MARGIN_TOP + (12 * CELL_HEIGHT) + MARGIN_BOTTOM;
+    // Draw calendar grid
+    drawCalendarGrid();
 
-    // Draw visualizations based on config
-    push();
-
-    let currentYOffset = 0;
-    let yOffsets = [];
-
-    // 1. Watercolor style
-    if (VIZ_CONFIG.watercolor) {
-        drawVisualizationSection(currentYOffset, 'Watercolor Style', 'watercolor');
-        yOffsets.push(currentYOffset);
-        currentYOffset += vizHeight + VIZ_GAP;
-        translate(0, vizHeight + VIZ_GAP);
-    }
-
-    // 2. Ballpen style
-    if (VIZ_CONFIG.ballpen) {
-        drawVisualizationSection(currentYOffset, 'Ballpen Style', 'ballpen');
-        yOffsets.push(currentYOffset);
-        currentYOffset += vizHeight + VIZ_GAP;
-        translate(0, vizHeight + VIZ_GAP);
-    }
-
-    // 3. P5.Brush style
-    if (VIZ_CONFIG.brush) {
-        drawVisualizationSection(currentYOffset, 'P5.Brush Style', 'brush');
-        yOffsets.push(currentYOffset);
-    }
-
-    pop();
-
-    // Store yOffsets globally for hover detection
-    window.vizYOffsets = yOffsets;
+    // Draw books
+    drawBooks();
 
     // Draw tooltip if hovering over a book
     if (hoveredBook) {
@@ -196,67 +151,35 @@ function draw() {
     noLoop(); // Only draw once, redraw on mouse move
 }
 
-function drawVisualizationSection(yOffset, title, style) {
-    push();
-
-    // Draw title
-    fill(TEXT_COLOR);
-    noStroke();
-    textSize(14);
-    textAlign(LEFT, TOP);
-    text(title, 20, 20);
-
-    // Draw calendar grid
-    drawCalendarGrid();
-
-    // Draw books with specified style
-    drawBooks(style, yOffset);
-
-    pop();
-}
-
 function mouseMoved() {
-    checkHover(mouseX, mouseY);
-    return false;
-}
-
-function touchMoved() {
-    checkHover(mouseX, mouseY);
-    return false;
-}
-
-function checkHover(x, y) {
+    // Check if mouse is over any book stroke
     let previousHover = hoveredBook;
     hoveredBook = null;
 
-    // Use stored yOffsets from draw()
-    let yOffsets = window.vizYOffsets || [];
+    for (let bookPos of bookPositions) {
+        let startPos = getDatePosition(bookPos.start.month, bookPos.start.day);
+        let endPos = getDatePosition(bookPos.end.month, bookPos.end.day);
 
-    for (let yOffset of yOffsets) {
-        for (let bookPos of bookPositions) {
-            let startPos = getDatePosition(bookPos.start.month, bookPos.start.day);
-            let endPos = getDatePosition(bookPos.end.month, bookPos.end.day);
+        // Apply vertical offset
+        startPos.y += bookPos.offset;
+        endPos.y += bookPos.offset;
 
-            // Apply vertical offset for book stacking and section offset
-            startPos.y += bookPos.offset + yOffset;
-            endPos.y += bookPos.offset + yOffset;
+        // Check if mouse is near the line (with tolerance)
+        let tolerance = 15;
+        let d = distToSegment(mouseX, mouseY, startPos, endPos);
 
-            // Check if mouse/touch is near the line
-            let tolerance = 20;
-            let d = distToSegment(x, y, startPos, endPos);
-
-            if (d < tolerance) {
-                hoveredBook = bookPos;
-                break;
-            }
+        if (d < tolerance) {
+            hoveredBook = bookPos;
+            break;
         }
-        if (hoveredBook) break;
     }
 
     // Only redraw if hover state changed
     if (hoveredBook !== previousHover) {
         redraw();
     }
+
+    return false; // Prevent default behavior
 }
 
 function distToSegment(px, py, v, w) {
@@ -347,7 +270,6 @@ function scaleCanvas(s) {
     MARGIN_BOTTOM *= s;
     CELL_WIDTH *= s;
     CELL_HEIGHT *= s;
-    VIZ_GAP *= s;
 }
 
 function drawCalendarGrid() {
@@ -390,18 +312,18 @@ function drawCalendarGrid() {
     }
 }
 
-function drawBooks(style, yOffset) {
+function drawBooks() {
     if (booksData.length === 0) return;
 
-    // Define color palette for books
+    // Define brighter color palette for books
     const colors = [
-        [255, 150, 150], // Pink/coral
-        [150, 200, 150], // Green
-        [150, 150, 220], // Purple/blue
-        [100, 150, 180], // Teal
-        [180, 120, 180], // Purple
-        [200, 180, 100], // Yellow
-        [220, 140, 120], // Orange
+        [255, 100, 100], // Bright pink/red
+        [100, 220, 100], // Bright green
+        [100, 100, 255], // Bright blue
+        [100, 200, 220], // Bright cyan
+        [220, 100, 220], // Bright magenta
+        [255, 200, 0],   // Bright yellow/gold
+        [255, 120, 80],  // Bright orange
     ];
 
     // Parse all books and detect overlaps (only do this once)
@@ -506,7 +428,7 @@ function drawBooks(style, yOffset) {
         });
     }
 
-    // Draw all books with their offsets using specified style
+    // Draw all books with their offsets
     bookPositions.forEach(bookPos => {
         let startPos = getDatePosition(bookPos.start.month, bookPos.start.day);
         let endPos = getDatePosition(bookPos.end.month, bookPos.end.day);
@@ -515,14 +437,7 @@ function drawBooks(style, yOffset) {
         startPos.y += bookPos.offset;
         endPos.y += bookPos.offset;
 
-        // Choose drawing style
-        if (style === 'watercolor') {
-            drawBookStrokeWatercolor(startPos, endPos, bookPos.color);
-        } else if (style === 'ballpen') {
-            drawBookStrokeBallpen(startPos, endPos, bookPos.color);
-        } else if (style === 'brush') {
-            drawBookStrokeBrush(startPos, endPos, bookPos.color);
-        }
+        drawBookStroke(startPos, endPos, bookPos.color);
     });
 }
 
@@ -536,79 +451,18 @@ function datesOverlap(start1, end1, start2, end2) {
     return date1Start <= date2End && date2Start <= date1End;
 }
 
-function drawBookStrokeWatercolor(startPos, endPos, color) {
-    // Clean watercolor stroke (current style)
+function drawBookStroke(startPos, endPos, color) {
+    // Clean, written-style stroke with bright colors
     push();
 
-    let dx = endPos.x - startPos.x;
-    let dy = endPos.y - startPos.y;
+    // Multiple overlapping strokes for hand-drawn texture
+    // Reduced stroke weight by 50% (from 14-22 to 7-11)
+    for (let layer = 0; layer < 10; layer++) {
+        stroke(color[0], color[1], color[2], random(20, 40));
+        strokeWeight(random(7, 11));
 
-    // Multiple overlapping strokes for watercolor effect
-    for (let layer = 0; layer < 12; layer++) {
-        stroke(color[0], color[1], color[2], random(15, 30));
-        strokeWeight(random(14, 22));
-
-        let offsetX = random(-1.5, 1.5);
-        let offsetY = random(-1.5, 1.5);
-
-        line(
-            startPos.x + offsetX,
-            startPos.y + offsetY,
-            endPos.x + offsetX,
-            endPos.y + offsetY
-        );
-    }
-
-    pop();
-}
-
-function drawBookStrokeBallpen(startPos, endPos, color) {
-    // Ballpen style: more consistent, darker, slightly textured
-    push();
-
-    // Main stroke - darker and more opaque
-    stroke(color[0] * 0.7, color[1] * 0.7, color[2] * 0.7, 120);
-    strokeWeight(18);
-    line(startPos.x, startPos.y, endPos.x, endPos.y);
-
-    // Add subtle texture with thinner overlays
-    for (let i = 0; i < 3; i++) {
-        stroke(color[0] * 0.6, color[1] * 0.6, color[2] * 0.6, random(40, 60));
-        strokeWeight(random(16, 20));
-
-        let offsetX = random(-0.5, 0.5);
-        let offsetY = random(-0.5, 0.5);
-
-        line(
-            startPos.x + offsetX,
-            startPos.y + offsetY,
-            endPos.x + offsetX,
-            endPos.y + offsetY
-        );
-    }
-
-    pop();
-}
-
-function drawBookStrokeBrush(startPos, endPos, color) {
-    // Pencil-style brush - continuous line with texture
-    push();
-
-    const brushWeight = 18; // Base stroke weight
-    const numLayers = 8; // Number of overlapping strokes for texture
-
-    // Draw multiple slightly offset strokes for pencil texture
-    for (let layer = 0; layer < numLayers; layer++) {
-        // Vary opacity and weight for each layer
-        let layerOpacity = random(40, 80);
-        let layerWeight = brushWeight + random(-2, 2);
-
-        // Small random offset for texture (much smaller than watercolor)
         let offsetX = random(-0.8, 0.8);
         let offsetY = random(-0.8, 0.8);
-
-        stroke(color[0], color[1], color[2], layerOpacity);
-        strokeWeight(layerWeight);
 
         line(
             startPos.x + offsetX,
