@@ -29,7 +29,6 @@ let booksData = [];
 let bookPositions = [];
 let hoveredBook = null;
 let bookImages = {};
-let brush; // p5.brush instance
 
 function preload() {
     // Image mapping for book covers
@@ -143,18 +142,6 @@ function setup() {
     }
 
     textFont('Inter');
-
-    // Initialize p5.brush
-    try {
-        brush = createBrush();
-        brush.setOptions({
-            type: 'marker',
-            weight: 20,
-            opacity: 30
-        });
-    } catch (e) {
-        console.log('p5.brush initialization skipped:', e);
-    }
 
     // Set random seed for consistent texture
     randomSeed(42);
@@ -604,21 +591,18 @@ function drawBookStrokeBallpen(startPos, endPos, color) {
 }
 
 function drawBookStrokeBrush(startPos, endPos, color) {
-    // P5.Brush style
+    // P5.Brush style using the marker brush
     push();
 
-    if (brush) {
-        try {
-            brush.set('marker', color, 1);
-            brush.line(startPos.x, startPos.y, endPos.x, endPos.y);
-        } catch (e) {
-            // Fallback to watercolor if brush fails
-            drawBookStrokeWatercolor(startPos, endPos, color);
-        }
-    } else {
-        // Fallback to watercolor if brush not initialized
-        drawBookStrokeWatercolor(startPos, endPos, color);
-    }
+    // Convert color array to p5.Color object
+    let brushColor = color(color[0], color[1], color[2]);
+
+    // Set the marker brush with the color and weight
+    // Weight is a multiplier on the base brush size
+    brush.set('marker', brushColor, 1);
+
+    // Draw the line
+    brush.line(startPos.x, startPos.y, endPos.x, endPos.y);
 
     pop();
 }
