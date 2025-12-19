@@ -95,15 +95,17 @@ function setup() {
     let canvasWidth, canvasHeight, scale;
 
     if (isMobile) {
-        // Mobile: keep minimum readable size, enable horizontal scroll
-        const minHeight = windowHeight - 140;
-        scale = min(minHeight / idealHeight, 1);
+        // Mobile: keep minimum readable size, enable scroll
+        // Ensure we don't scale too small and clip important labels
+        const minHeight = windowHeight - 200; // More space for footer
+        scale = min(minHeight / idealHeight, 0.9); // Max 90% to keep margins visible
+        scale = max(scale, 0.5); // Minimum 50% scale to keep readable
         canvasWidth = idealWidth * scale;
         canvasHeight = idealHeight * scale;
     } else {
-        // Desktop: scale to fit viewport
-        const maxWidth = windowWidth - 40;
-        const maxHeight = windowHeight - 140;
+        // Desktop: scale to fit viewport with padding
+        const maxWidth = windowWidth - 80; // More padding on sides
+        const maxHeight = windowHeight - 200; // More space for footer
         scale = min(maxWidth / idealWidth, maxHeight / idealHeight, 1);
         canvasWidth = idealWidth * scale;
         canvasHeight = idealHeight * scale;
