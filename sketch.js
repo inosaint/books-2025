@@ -315,14 +315,14 @@ function drawCalendarGrid() {
 function drawBooks() {
     if (booksData.length === 0) return;
 
-    // Define brighter color palette for books
+    // Define brighter color palette for books (avoiding yellow due to background)
     const colors = [
         [255, 100, 100], // Bright pink/red
         [100, 220, 100], // Bright green
         [100, 100, 255], // Bright blue
         [100, 200, 220], // Bright cyan
         [220, 100, 220], // Bright magenta
-        [255, 200, 0],   // Bright yellow/gold
+        [180, 100, 255], // Bright purple
         [255, 120, 80],  // Bright orange
     ];
 
@@ -419,8 +419,8 @@ function drawBooks() {
 
                 // Check if books overlap in time
                 if (datesOverlap(bookPos.start, bookPos.end, other.start, other.end)) {
-                    // Stack this book below the other
-                    offset = Math.max(offset, (other.offset || 0) + 6);
+                    // Stack this book below the other with 5px margin for touch access
+                    offset = Math.max(offset, (other.offset || 0) + 5);
                 }
             }
 
@@ -456,6 +456,31 @@ function drawBookStroke(startPos, endPos, color) {
     push();
 
     const distance = dist(startPos.x, startPos.y, endPos.x, endPos.y);
+
+    // Handle same-day books (distance is 0 or very small)
+    if (distance < 5) {
+        // Draw a small horizontal line (12px) to represent the book
+        const lineLength = 12;
+        const centerX = startPos.x;
+        const centerY = startPos.y;
+
+        // Draw with same style as regular strokes
+        for (let layer = 0; layer < 3; layer++) {
+            stroke(color[0], color[1], color[2], random(40, 70));
+            strokeWeight(random(5.5, 7));
+
+            let offsetY = random(-0.5, 0.5);
+            line(
+                centerX - lineLength / 2,
+                centerY + offsetY,
+                centerX + lineLength / 2,
+                centerY + offsetY
+            );
+        }
+        pop();
+        return;
+    }
+
     const numSegments = Math.floor(distance / 2); // One segment every 2 pixels
 
     // Draw multiple overlapping layers for texture
