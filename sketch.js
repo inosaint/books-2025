@@ -470,11 +470,8 @@ function drawBookStroke(startPos, endPos, color) {
             let x = lerp(startPos.x, endPos.x, t);
             let y = lerp(startPos.y, endPos.y, t);
 
-            // 1. PRESSURE SIMULATION: Vary weight along stroke (thicker in middle, thinner at ends)
-            const pressureCurve = sin(t * PI); // Creates a bell curve
-            const baseWeight = 5;
-            const maxWeight = 10;
-            const weight = baseWeight + pressureCurve * maxWeight;
+            // 1. CONSISTENT WIDTH: Keep line thickness mostly uniform (reduced by 25%)
+            const weight = random(5.5, 7); // More consistent pen-like width
 
             // 2. IRREGULARITY & TEXTURE: Add subtle noise for hand-drawn feel
             const noiseScale = 0.05;
@@ -482,9 +479,10 @@ function drawBookStroke(startPos, endPos, color) {
             x += (noise(i * noiseScale, layer) - 0.5) * wobbleAmount;
             y += (noise(i * noiseScale + 100, layer) - 0.5) * wobbleAmount;
 
-            // 3. OPACITY CONTROL: Map pressure to opacity
-            const minOpacity = 25;
-            const maxOpacity = 60;
+            // 3. OPACITY CONTROL: Use pressure curve only for opacity variation
+            const pressureCurve = sin(t * PI); // Creates a bell curve
+            const minOpacity = 30;
+            const maxOpacity = 70;
             const opacity = minOpacity + pressureCurve * maxOpacity;
 
             // Draw the segment
