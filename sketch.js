@@ -318,6 +318,7 @@ function drawBooks() {
     if (booksData.length === 0) return;
 
     // Define brighter color palette for books (avoiding yellow due to background)
+    // Expanded palette to ensure unique colors for all books
     const colors = [
         [255, 100, 100], // Bright pink/red
         [100, 220, 100], // Bright green
@@ -326,6 +327,17 @@ function drawBooks() {
         [220, 100, 220], // Bright magenta
         [180, 100, 255], // Bright purple
         [255, 120, 80],  // Bright orange
+        [255, 80, 150],  // Hot pink
+        [80, 180, 140],  // Teal
+        [200, 100, 150], // Rose
+        [140, 100, 200], // Violet
+        [100, 150, 255], // Sky blue
+        [255, 140, 100], // Coral
+        [180, 220, 100], // Lime
+        [220, 140, 200], // Orchid
+        [100, 220, 200], // Aqua
+        [200, 120, 100], // Terracotta
+        [150, 100, 220], // Deep purple
     ];
 
     // Parse all books and detect overlaps (only do this once)
@@ -425,8 +437,8 @@ function drawBooks() {
 
                 // Check if books overlap in time
                 if (datesOverlap(bookPos.start, bookPos.end, other.start, other.end)) {
-                    // Variable spacing: tighter for outer books (10.5px), looser for inner (15px)
-                    const spacing = overlapCount === 0 ? 10.5 : 15;
+                    // Variable spacing: tighter for outer books, looser for inner
+                    const spacing = overlapCount === 0 ? 9.5 : 13.5;
                     offset = Math.max(offset, (other.offset || 0) + spacing);
                     overlapCount++;
                 }
@@ -444,11 +456,28 @@ function drawBooks() {
         });
 
         // Adjust offsets to center stacks within each month row
+        // But ensure books don't go too high and touch the grid line
+        const minMargin = 5; // Minimum pixels from top grid line
+        const maxNegativeOffset = -CELL_HEIGHT / 2 + minMargin;
+
+        // Calculate center shift per month, constrained to not go too high
+        const centerShifts = new Array(12).fill(0);
+        for (let month = 0; month < 12; month++) {
+            const maxOffset = maxOffsetPerMonth[month];
+            const idealShift = -maxOffset / 2;
+            // If the smallest offset (0) would become too negative, adjust the shift
+            const wouldBecomeOffset = 0 + idealShift;
+            if (wouldBecomeOffset < maxNegativeOffset) {
+                centerShifts[month] = maxNegativeOffset; // Shift only enough to reach the limit
+            } else {
+                centerShifts[month] = idealShift;
+            }
+        }
+
+        // Apply the constrained center shift to all books
         bookPositions.forEach(bookPos => {
             const month = bookPos.start.month;
-            const maxOffset = maxOffsetPerMonth[month];
-            // Shift the entire stack up to center it in the row
-            bookPos.offset = bookPos.offset - maxOffset / 2;
+            bookPos.offset = bookPos.offset + centerShifts[month];
         });
     }
 
@@ -491,7 +520,7 @@ function drawBookStroke(startPos, endPos, color) {
         // Draw with same style as regular strokes
         for (let layer = 0; layer < 3; layer++) {
             stroke(color[0], color[1], color[2], random(40, 70));
-            strokeWeight(random(5.5, 7));
+            strokeWeight(random(5, 6.3));
 
             let offsetY = random(-0.5, 0.5);
             line(
@@ -519,8 +548,8 @@ function drawBookStroke(startPos, endPos, color) {
             let x = lerp(startPos.x, endPos.x, t);
             let y = lerp(startPos.y, endPos.y, t);
 
-            // 1. CONSISTENT WIDTH: Keep line thickness mostly uniform (reduced by 25%)
-            const weight = random(5.5, 7); // More consistent pen-like width
+            // 1. CONSISTENT WIDTH: Keep line thickness mostly uniform
+            const weight = random(5, 6.3); // More consistent pen-like width
 
             // 2. IRREGULARITY & TEXTURE: Add subtle noise for hand-drawn feel
             const noiseScale = 0.05;
