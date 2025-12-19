@@ -452,24 +452,56 @@ function datesOverlap(start1, end1, start2, end2) {
 }
 
 function drawBookStroke(startPos, endPos, color) {
-    // Clean, written-style stroke with bright colors
+    // Hand-drawn pen stroke with pressure, texture, and irregularity
     push();
 
-    // Multiple overlapping strokes for hand-drawn texture
-    // Reduced stroke weight by 50% (from 14-22 to 7-11)
-    for (let layer = 0; layer < 10; layer++) {
-        stroke(color[0], color[1], color[2], random(20, 40));
-        strokeWeight(random(7, 11));
+    const distance = dist(startPos.x, startPos.y, endPos.x, endPos.y);
+    const numSegments = Math.floor(distance / 2); // One segment every 2 pixels
 
-        let offsetX = random(-0.8, 0.8);
-        let offsetY = random(-0.8, 0.8);
+    // Draw multiple overlapping layers for texture
+    for (let layer = 0; layer < 3; layer++) {
+        // Each layer has slight offset for texture
+        const layerOffset = layer * 0.3;
 
-        line(
-            startPos.x + offsetX,
-            startPos.y + offsetY,
-            endPos.x + offsetX,
-            endPos.y + offsetY
-        );
+        for (let i = 0; i < numSegments; i++) {
+            const t = i / numSegments;
+
+            // Calculate position along the line
+            let x = lerp(startPos.x, endPos.x, t);
+            let y = lerp(startPos.y, endPos.y, t);
+
+            // 1. PRESSURE SIMULATION: Vary weight along stroke (thicker in middle, thinner at ends)
+            const pressureCurve = sin(t * PI); // Creates a bell curve
+            const baseWeight = 5;
+            const maxWeight = 10;
+            const weight = baseWeight + pressureCurve * maxWeight;
+
+            // 2. IRREGULARITY & TEXTURE: Add subtle noise for hand-drawn feel
+            const noiseScale = 0.05;
+            const wobbleAmount = 0.8;
+            x += (noise(i * noiseScale, layer) - 0.5) * wobbleAmount;
+            y += (noise(i * noiseScale + 100, layer) - 0.5) * wobbleAmount;
+
+            // 3. OPACITY CONTROL: Map pressure to opacity
+            const minOpacity = 25;
+            const maxOpacity = 60;
+            const opacity = minOpacity + pressureCurve * maxOpacity;
+
+            // Draw the segment
+            stroke(color[0], color[1], color[2], opacity);
+            strokeWeight(weight);
+
+            // Draw short line to next point for smooth connection
+            if (i < numSegments - 1) {
+                const nextT = (i + 1) / numSegments;
+                let nextX = lerp(startPos.x, endPos.x, nextT);
+                let nextY = lerp(startPos.y, endPos.y, nextT);
+                nextX += (noise((i + 1) * noiseScale, layer) - 0.5) * wobbleAmount;
+                nextY += (noise((i + 1) * noiseScale + 100, layer) - 0.5) * wobbleAmount;
+
+                line(x, y, nextX, nextY);
+            }
+        }
     }
 
     pop();
