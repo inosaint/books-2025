@@ -4,12 +4,20 @@ const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', '
 const DAYS_IN_MONTH = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
 
 // Layout configuration
-let MARGIN_LEFT = 80;
+// MARGIN_LEFT is sized so the left-hand labels (below) always have room to fit
+// at their fixed size, even after the layout is scaled down for small screens.
+let MARGIN_LEFT = 125;
 let MARGIN_TOP = 80;
 let MARGIN_RIGHT = 40;
 let MARGIN_BOTTOM = 40;
 let CELL_WIDTH = 30;
 let CELL_HEIGHT = 60;
+
+// Label text sizes - intentionally fixed (not scaled) so labels stay legible
+// at any screen size; MARGIN_LEFT provides enough room for them at any scale.
+const YEAR_TEXT_SIZE = 16;
+const MONTH_TEXT_SIZE = 14;
+const DAY_TEXT_SIZE = 12;
 
 // Colors
 const BG_COLOR = '#FAFFCE';
@@ -280,12 +288,12 @@ function drawCalendarGrid() {
     fill(TEXT_COLOR);
 
     // Draw year label (aligned with months)
-    textSize(16);
+    textSize(YEAR_TEXT_SIZE);
     textAlign(RIGHT, CENTER);
     text('2025', MARGIN_LEFT - 15, MARGIN_TOP / 2);
 
     // Draw day numbers at the top
-    textSize(12);
+    textSize(DAY_TEXT_SIZE);
     textAlign(CENTER, TOP);
     for (let day = 1; day <= 31; day++) {
         let x = MARGIN_LEFT + (day - 1) * CELL_WIDTH + CELL_WIDTH / 2;
@@ -297,7 +305,7 @@ function drawCalendarGrid() {
         let y = MARGIN_TOP + month * CELL_HEIGHT;
 
         // Month label
-        textSize(14);
+        textSize(MONTH_TEXT_SIZE);
         textAlign(RIGHT, CENTER);
         text(MONTHS[month], MARGIN_LEFT - 15, y + CELL_HEIGHT / 2);
 
